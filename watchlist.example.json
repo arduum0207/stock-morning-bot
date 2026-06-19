@@ -1,0 +1,8 @@
+{
+  "tickers": [
+    { "ticker": "005930", "name": "삼성전자", "market": "KR", "dartCorpCode": "00126380" },
+    { "ticker": "000660", "name": "SK하이닉스", "market": "KR", "dartCorpCode": "00164779" },
+    { "ticker": "NVDA", "name": "NVIDIA", "market": "US" },
+    { "ticker": "TSLA", "name": "Tesla", "market": "US" }
+  ]
+}
