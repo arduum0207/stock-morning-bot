@@ -61,3 +61,50 @@ export async function sendMessage(html: string): Promise<void> {
     throw new Error(`텔레그램 sendMessage 실패: HTTP ${res.status} ${data.description ?? ''}`);
   }
 }
+
+// ── 수신(명령 처리)용 ──────────────────────────────────────────────
+
+interface TgChat {
+  id?: number;
+}
+interface TgMsg {
+  text?: string;
+  chat?: TgChat;
+}
+interface TgUpdate {
+  update_id: number;
+  message?: TgMsg;
+  channel_post?: TgMsg;
+}
+
+export interface IncomingMessage {
+  updateId: number;
+  chatId: string;
+  text: string;
+}
+
+/**
+ * 대기 중인 메시지 수거 (롱폴 없이 즉시).
+ * 웹훅 미사용 가정. 미확정 업데이트는 텔레그램이 ~24시간 보관하므로 1일 1회 폴링과 맞는다.
+ */
+export async function getUpdates(): Promise<IncomingMessage[]> {
+  const { token } = creds();
+  const res = await fetch(`https://api.telegram.org/bot${token}/getUpdates?timeout=0`);
+  const data = (await res.json().catch(() => ({}))) as { ok?: boolean; result?: TgUpdate[] };
+  if (!data.ok || !data.result) return [];
+
+  const out: IncomingMessage[] = [];
+  for (const u of data.result) {
+    const msg = u.message ?? u.channel_post;
+    const text = msg?.text;
+    if (typeof u.update_id !== 'number' || !text) continue;
+    out.push({ updateId: u.update_id, chatId: msg?.chat?.id != null ? String(msg.chat.id) : '', text });
+  }
+  return out;
+}
+
+/** 처리 완료한 업데이트를 서버에서 확정 제거(offset). 다음 폴링에 재등장 방지. */
+export async function confirmUpdates(uptoUpdateId: number): Promise<void> {
+  const { token } = creds();
+  await fetch(`https://api.telegram.org/bot${token}/getUpdates?offset=${uptoUpdateId + 1}&timeout=0`);
+}

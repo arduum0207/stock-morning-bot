@@ -1,12 +1,16 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import type { Watchlist } from './types';
+
+function watchlistPath(): string {
+  return process.env.WATCHLIST_PATH || 'watchlist.json';
+}
 
 /**
  * watchlist.json 로드 + 최소 검증.
  * 경로는 WATCHLIST_PATH 환경변수로 덮어쓸 수 있다 (기본: 레포 루트의 watchlist.json).
  */
 export async function loadWatchlist(): Promise<Watchlist> {
-  const p = process.env.WATCHLIST_PATH || 'watchlist.json';
+  const p = watchlistPath();
   let raw: string;
   try {
     raw = await readFile(p, 'utf8');
@@ -36,4 +40,9 @@ export async function loadWatchlist(): Promise<Watchlist> {
     }
   }
   return data;
+}
+
+/** watchlist.json 저장 (텔레그램 명령으로 종목 추가/삭제 후). */
+export async function saveWatchlist(wl: Watchlist): Promise<void> {
+  await writeFile(watchlistPath(), JSON.stringify(wl, null, 2) + '\n', 'utf8');
 }
