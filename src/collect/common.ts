@@ -30,36 +30,60 @@ export function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** fetch + 타임아웃 + JSON. 실패 시 throw. */
+const FETCH_TRIES = 2;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * fetch + 타임아웃 + 재시도. 일시 오류(네트워크 throw, HTTP 5xx)만 재시도한다.
+ * 4xx(예: naver 403 차단, 잘못된 키)는 영구 오류라 즉시 throw — 헛재시도 방지.
+ */
+async function fetchWithRetry(
+  url: string,
+  init?: RequestInit & { timeoutMs?: number }
+): Promise<Response> {
+  let lastErr: unknown;
+  for (let i = 0; i < FETCH_TRIES; i++) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), init?.timeoutMs ?? 15_000);
+    try {
+      const res = await fetch(url, { ...init, signal: ctrl.signal });
+      clearTimeout(t);
+      if (res.status >= 500 && i < FETCH_TRIES - 1) {
+        await sleep(600 * (i + 1));
+        continue; // 서버 일시 오류(예: DART 503) → 재시도
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
+      return res;
+    } catch (e) {
+      clearTimeout(t);
+      lastErr = e;
+      // HTTP 오류로 우리가 던진 Error는 재시도 안 함(4xx/마지막 5xx)
+      if (e instanceof Error && e.message.startsWith('HTTP ')) throw e;
+      if (i < FETCH_TRIES - 1) {
+        await sleep(600 * (i + 1));
+        continue; // 네트워크 throw → 재시도
+      }
+    }
+  }
+  throw lastErr ?? new Error(`fetch 실패: ${url}`);
+}
+
+/** fetch + 타임아웃 + 재시도 + JSON. 실패 시 throw. */
 export async function fetchJson<T = unknown>(
   url: string,
   init?: RequestInit & { timeoutMs?: number }
 ): Promise<T> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), init?.timeoutMs ?? 15_000);
-  try {
-    const res = await fetch(url, { ...init, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
-    return (await res.json()) as T;
-  } finally {
-    clearTimeout(t);
-  }
+  const res = await fetchWithRetry(url, init);
+  return (await res.json()) as T;
 }
 
-/** fetch + 타임아웃 + text (RSS/XML 용). */
+/** fetch + 타임아웃 + 재시도 + text (RSS/XML 용). */
 export async function fetchText(
   url: string,
   init?: RequestInit & { timeoutMs?: number }
 ): Promise<string> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), init?.timeoutMs ?? 15_000);
-  try {
-    const res = await fetch(url, { ...init, signal: ctrl.signal });
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${url}`);
-    return await res.text();
-  } finally {
-    clearTimeout(t);
-  }
+  const res = await fetchWithRetry(url, init);
+  return await res.text();
 }
 
 export function log(tag: string, msg: string): void {

@@ -15,14 +15,16 @@
 npm run commands
 ```
 → 그동안 유저가 보낸 `/add`·`/remove`·`/list` 를 수거해 `watchlist.json` 을 갱신하고 결과를 회신한다.
-- 출력 **마지막 줄이 `CHANGED`** 이면 `watchlist.json` 이 바뀐 것 → **레포에 커밋·푸시해 영속화**한다:
-  ```bash
-  git add watchlist.json
-  git commit -m "chore: watchlist 업데이트 (telegram)"
-  git push
-  ```
-  (클라우드 세션은 현재 작업 브랜치로 push 가능. 만약 push가 막히면 그 사실을 텔레그램으로 1줄 알리고 진행 — 변경은 다음 실행에서 재시도된다.)
-- `NOCHANGE` 면 커밋 없이 다음 단계로.
+- 출력 **마지막 줄이 `CHANGED`** 이면 `watchlist.json` 이 바뀐 것:
+  - **로컬 모드**: working folder가 디스크에 그대로 남으므로 `npm run commands` 가 파일을 저장한 것으로 **영속화 끝.** 커밋 불필요.
+  - **클라우드 모드**: 매 실행 새 clone이라 휘발 → **레포에 커밋·푸시해야** 다음 실행에 유지된다:
+    ```bash
+    git add watchlist.json && git commit -m "chore: watchlist 업데이트 (telegram)" && git push
+    ```
+    (push가 막히면 그 사실만 텔레그램으로 1줄 알리고 진행 — 변경은 다음 실행에서 재시도.)
+- `NOCHANGE` 면 다음 단계로.
+
+> getUpdates가 네트워크 오류로 실패해도(드묾) 치명적이지 않다 — 그 회차 명령만 다음 실행으로 미뤄질 뿐. 수집·발송은 계속 진행한다.
 
 ### 1. 데이터 수집
 ```bash
