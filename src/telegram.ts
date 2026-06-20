@@ -139,3 +139,23 @@ export async function confirmUpdates(uptoUpdateId: number): Promise<void> {
     () => ({})
   );
 }
+
+/**
+ * 봇 명령 메뉴 등록 (입력창에 "/" 만 쳐도 목록이 뜨게). 멱등 — 매번 호출해도 무해.
+ * best-effort: 실패해도 봇 동작엔 지장 없음(호출부에서 catch).
+ */
+export async function registerCommands(): Promise<void> {
+  const { token } = creds();
+  const commands = [
+    { command: 'list', description: '현재 관심종목 목록' },
+    { command: 'add', description: '종목 추가 (예: /add 삼성전자)' },
+    { command: 'remove', description: '종목 삭제 (예: /remove NVDA)' },
+    { command: 'help', description: '사용법 보기' },
+  ];
+  const res = await fetchRetry(`https://api.telegram.org/bot${token}/setMyCommands`, () => ({
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ commands }),
+  }));
+  await ensureOk(res, 'setMyCommands');
+}

@@ -12,26 +12,37 @@ import { config } from 'dotenv';
 config();
 
 import { loadWatchlist, saveWatchlist } from './config';
-import { getUpdates, confirmUpdates, sendMessage } from './telegram';
+import { getUpdates, confirmUpdates, sendMessage, registerCommands } from './telegram';
 import { resolveStock } from './resolve';
 import type { WatchTicker } from './types';
 
 const MY_CHAT = process.env.TELEGRAM_CHAT_ID;
 
+const HELP_TEXT =
+  '🤖 <b>종목 브리핑 봇</b>\n' +
+  '/list — 현재 관심종목\n' +
+  '/add &lt;종목명|티커&gt; — 추가 (예: /add 삼성전자)\n' +
+  '/remove &lt;종목명|티커&gt; — 삭제\n' +
+  '명령은 다음 아침 실행 때 반영돼요.';
+
 interface ParsedCmd {
-  cmd: 'add' | 'remove' | 'list';
+  cmd: 'add' | 'remove' | 'list' | 'help';
   arg: string;
 }
 
 function parseCmd(text: string): ParsedCmd | null {
-  const m = text.trim().match(/^\/(add|remove|rm|list)\b\s*(.*)$/i);
+  const m = text.trim().match(/^\/(add|remove|rm|list|help|start)\b\s*(.*)$/i);
   if (!m) return null;
   const raw = m[1].toLowerCase();
-  const cmd = raw === 'rm' ? 'remove' : (raw as 'add' | 'remove' | 'list');
+  const cmd =
+    raw === 'rm' ? 'remove' : raw === 'start' ? 'help' : (raw as 'add' | 'remove' | 'list' | 'help');
   return { cmd, arg: m[2].trim() };
 }
 
 async function main() {
+  // 명령 메뉴 등록 (입력창 "/" 자동완성). best-effort — 실패해도 진행.
+  await registerCommands().catch(() => console.warn('· setMyCommands 실패(무시)'));
+
   const updates = await getUpdates();
   if (updates.length === 0) {
     console.log('· 새 명령 없음');
@@ -49,6 +60,10 @@ async function main() {
 
   for (const { cmd, arg } of cmds) {
     if (cmd === 'list') continue; // 최종 목록은 아래에서 항상 출력
+    if (cmd === 'help') {
+      lines.push(HELP_TEXT);
+      continue;
+    }
 
     if (cmd === 'add') {
       if (!arg) {

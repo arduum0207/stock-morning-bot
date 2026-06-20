@@ -7,6 +7,7 @@
   "scripts": {
     "commands": "tsx src/commands.ts",
     "collect": "tsx src/collect/run.ts",
+    "send-text": "tsx src/send-text.ts",
     "send": "tsx src/send.ts",
     "typecheck": "tsc --noEmit"
   },
