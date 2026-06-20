@@ -1,6 +1,35 @@
 {
   "tickers": [
-    { "ticker": "005930", "name": "삼성전자", "market": "KR", "dartCorpCode": "00126380" },
-    { "ticker": "NVDA", "name": "NVIDIA", "market": "US" }
+    {
+      "ticker": "005930",
+      "name": "삼성전자",
+      "market": "KR",
+      "dartCorpCode": "00126380"
+    },
+    {
+      "ticker": "000660",
+      "name": "SK하이닉스",
+      "market": "KR"
+    },
+    {
+      "ticker": "NBIS",
+      "name": "네비우스 그룹",
+      "market": "US"
+    },
+    {
+      "ticker": "ORCL",
+      "name": "오라클",
+      "market": "US"
+    },
+    {
+      "ticker": "MVIS",
+      "name": "마이크로비전",
+      "market": "US"
+    },
+    {
+      "ticker": "INVZ",
+      "name": "이노비즈 테크놀로지스",
+      "market": "US"
+    }
   ]
 }
