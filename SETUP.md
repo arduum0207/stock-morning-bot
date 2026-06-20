@@ -25,7 +25,7 @@
 4. **봇 사용자명(username)** 입력 — 반드시 `bot` 으로 끝나야 함. 예: `my_stock_brief_bot`
 5. BotFather가 **토큰**을 줍니다. 이렇게 생겼어요:
    ```
-   8123456789:AAFsm9kl...본인토큰...IzcD8
+   123456789:AAHexampleEXAMPLE-do-not-use-placeholder-0000
    ```
    이게 `TELEGRAM_BOT_TOKEN` 입니다.
 6. (나중에 다시 보려면) BotFather에서 **`/mybots` → 해당 봇 → API Token**.
@@ -115,7 +115,7 @@ COLLECT_USER_AGENT=홍길동 mymail@example.com
 ### 로컬 테스트(선택)
 레포 루트에 `.env` 파일을 만들고 같은 형식으로 넣습니다:
 ```
-TELEGRAM_BOT_TOKEN=8123456789:AAF...
+TELEGRAM_BOT_TOKEN=123456789:AAH-your-bot-token-here
 TELEGRAM_CHAT_ID=12345678
 NAVER_CLIENT_ID=...
 NAVER_CLIENT_SECRET=...
