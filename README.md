@@ -99,6 +99,8 @@ COLLECT_USER_AGENT=내이름 my-email@example.com
 ```
 api.telegram.org
 openapi.naver.com
+ac.stock.naver.com
+m.stock.naver.com
 opendart.fss.or.kr
 dart.fss.or.kr
 financialmodelingprep.com

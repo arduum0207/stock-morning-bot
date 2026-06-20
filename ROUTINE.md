@@ -44,7 +44,9 @@ npm run collect
 - **영향 분류**: 긍정/부정/중립. 공시는 `공시` 태그.
 - 보유 종목에 직접 영향이 큰 항목은 **상단·강조(relevant)**.
 - 맨 위에 **오늘의 한 줄 시그널**(전체 흐름 요약)을 만든다.
-- 실적 일정(earnings)은 임박한 것만 간단히 언급.
+- 실적(earnings) 표기:
+  - US: `eventDate`(발표 예정일) + EPS/매출 컨센 — 임박한 것만.
+  - KR: `eventDate`는 null이다. `period`(예 "2026.06") + 컨센서스(매출·영업이익·EPS, **단위 `unit`="억원"** → 조 단위로 환산해 보여주면 가독성↑) + `targetPrice`(목표주가, 원).
 
 ### 4. HTML 생성
 `out/brief-<YYYY-MM-DD>.html` 로 저장한다. 규칙:

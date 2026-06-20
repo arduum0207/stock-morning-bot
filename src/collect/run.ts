@@ -19,6 +19,7 @@ import type { Collected, Collector } from '../types';
 import dart from './dart';
 import sec from './sec';
 import naverNews from './naver-news';
+import naverEarnings from './naver-earnings';
 import fmp from './fmp';
 import rss from './rss';
 
@@ -50,7 +51,7 @@ async function main() {
   // US 종목 CIK 자동 해석 (SEC 공시용)
   await resolveCik(tickers);
 
-  const collectors: Record<string, Collector> = { dart, sec, naverNews, fmp, rss };
+  const collectors: Record<string, Collector> = { dart, sec, naverNews, naverEarnings, fmp, rss };
   const entries = Object.entries(collectors);
   const settled = await Promise.allSettled(entries.map(([, fn]) => fn(tickers)));
 

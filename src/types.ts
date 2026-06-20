@@ -40,11 +40,21 @@ export interface Filing {
 export interface EarningsEvent {
   ticker: string;
   market: Market;
-  eventDate: string;
+  /** US: 실제 발표(예정)일. KR: null — 네이버가 정확한 실적일을 주지 않음(추정 분기만). */
+  eventDate: string | null;
+  /** 추정 대상 기간 라벨. KR 컨센서스 분기 예: "2026.06". US는 보통 미사용. */
+  period?: string | null;
   epsEstimated?: number | null;
   epsActual?: number | null;
   revenueEstimated?: number | null;
   revenueActual?: number | null;
+  // ── KR 전용(네이버 컨센서스). 있으면 채워짐 ──
+  currency?: 'USD' | 'KRW' | null;
+  /** KR 매출/이익 단위 표기(예: "억원"). US는 USD 절대값이라 미사용. */
+  unit?: string | null;
+  operatingProfitEstimated?: number | null;
+  /** 목표주가 컨센서스(KR, 원). */
+  targetPrice?: number | null;
 }
 
 /** 수집 결과 산출물 (out/collected.json). 에이전트가 이걸 읽어 HTML을 만든다. */
