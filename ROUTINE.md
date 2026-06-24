@@ -46,6 +46,12 @@ npm run collect
 - **영향 분류**: 긍정/부정/중립. 공시는 `공시` 태그.
 - 보유 종목에 직접 영향이 큰 항목은 **상단·강조(relevant)**.
 - 맨 위에 **오늘의 한 줄 시그널**(전체 흐름 요약)을 만든다.
+
+#### 3-1. 감시포인트(watchPoints) 우선 확인
+- `watchlist.json`에서 종목에 `watchPoints`(문자열 배열)가 있으면, 그 종목의 `news[]`/`filings[]`를 **그 항목들과 먼저 대조**한다. 이건 사용자가 MONEY_PROJECT `/intel` 논지 모니터에 등록해 둔 손절/재검토 트리거(가격이 아니라 펀더멘털 기준)와 동일하다.
+- 매칭되는 기사가 있으면 `relevant` + 어떤 watchPoint와 관련되는지 한 줄 명시(예: "⚠️ 감시포인트: RPO 감소 여부 — 관련 기사").
+- `collected.json`에 watchPoints 관련 기사가 전혀 없으면, **그 종목에 한해서만** 가볍게 웹서치 1~2회로 보강 확인한다(예: `"{회사명} {watchPoint 핵심어} news"`). 찾은 게 있으면 카드로 추가, 없으면 굳이 "특이사항 없음"을 매번 쓰지 않아도 된다 — 매칭 안 된 watchPoint는 조용히 넘어간다.
+- watchPoints가 없는 종목(005930·000660·NBIS·MVIS·INVZ·AEVA)은 기존 방식 그대로, 보강 검색 없이 진행한다.
 - 실적(earnings) 표기:
   - US: `eventDate`(발표 예정일) + EPS/매출 컨센 — 임박한 것만.
   - KR: `eventDate`는 null이다. `period`(예 "2026.06") + 컨센서스(매출·영업이익·EPS, **단위 `unit`="억원"** → 조 단위로 환산해 보여주면 가독성↑) + `targetPrice`(목표주가, 원).
