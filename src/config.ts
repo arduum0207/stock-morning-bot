@@ -46,3 +46,28 @@ export async function loadWatchlist(): Promise<Watchlist> {
 export async function saveWatchlist(wl: Watchlist): Promise<void> {
   await writeFile(watchlistPath(), JSON.stringify(wl, null, 2) + '\n', 'utf8');
 }
+
+/**
+ * 봇 대기상태. 메뉴에서 인자 없이 /add(또는 /remove)만 탭했을 때,
+ * "다음에 받을 일반 메시지를 어느 명령의 인자로 쓸지" 기억한다(2단계 대화).
+ * 같은 배치 안에서도, 배치가 끊겨 다음 폴링으로 넘어가도 이어지도록 파일에 저장한다.
+ */
+export type PendingMode = 'add' | 'remove' | null;
+
+function statePath(): string {
+  return process.env.BOT_STATE_PATH || '.bot-state.json';
+}
+
+export async function loadPending(): Promise<PendingMode> {
+  try {
+    const raw = await readFile(statePath(), 'utf8');
+    const p = (JSON.parse(raw) as { pending?: unknown }).pending;
+    return p === 'add' || p === 'remove' ? p : null;
+  } catch {
+    return null; // 파일 없음/깨짐 → 대기 없음
+  }
+}
+
+export async function savePending(pending: PendingMode): Promise<void> {
+  await writeFile(statePath(), JSON.stringify({ pending }) + '\n', 'utf8');
+}

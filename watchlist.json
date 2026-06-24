@@ -30,6 +30,11 @@
       "ticker": "INVZ",
       "name": "이노비즈 테크놀로지스",
       "market": "US"
+    },
+    {
+      "ticker": "AEVA",
+      "name": "아에바 테크놀로지스",
+      "market": "US"
     }
   ]
 }
