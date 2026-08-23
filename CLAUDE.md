@@ -31,7 +31,8 @@ src/
     dart.ts           KR 공시 (DART)
     naver-news.ts     KR 뉴스 (네이버)
     sec.ts            US 공시 (SEC EDGAR)
-    fmp.ts            US 실적 (FMP)
+    fmp.ts            US 실적 (FMP — 무료 티어는 일부 종목만)
+    nasdaq.ts         US 실적 (Nasdaq, 키 불필요 — FMP 공백 보완)
     rss.ts            US 뉴스 (Yahoo RSS)
     cik.ts            US ticker→CIK 자동 해석
     run.ts            오케스트레이터 → out/collected.json

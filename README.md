@@ -86,10 +86,12 @@ GitHub에서 이 레포 우측 상단 **[Fork]** 버튼 클릭. 끝. (다운로�
 | **내 chat_id**(필수) | 봇에게 말 건 뒤 `…/getUpdates` 또는 [@userinfobot](https://t.me/userinfobot) | `TELEGRAM_CHAT_ID` |
 | **네이버 검색**(KR 뉴스) | https://developers.naver.com → 애플리케이션 등록 → "검색" | `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` |
 | **DART**(KR 공시) | https://opendart.fss.or.kr → 인증키 신청 | `DART_API_KEY` |
-| **FMP**(US 실적) | https://financialmodelingprep.com → 무료 가입 | `FMP_API_KEY` |
+| **FMP**(US 실적, 선택) | https://financialmodelingprep.com → 무료 가입 | `FMP_API_KEY` |
 
 > **꼭 필요한 건 텔레그램 2개뿐.** US 뉴스(Yahoo)·US 공시(SEC)·KR 실적 컨센(네이버 금융)은 키 불필요.
 > **KR만** 보면 FMP 생략, **US만** 보면 네이버·DART 생략. 일부만 넣어도 그 소스만 동작합니다.
+>
+> US 실적은 키 없이 동작하는 **Nasdaq** 수집기가 기본으로 채웁니다. `FMP_API_KEY` 는 없어도 됩니다.
 
 ### 3단계 — 종목 리스트 편집
 
@@ -211,7 +213,7 @@ npm run send out/collected.json "테스트"   # 텔레그램 도착 확인(아�
 | `watchlist 파일을 찾을 수 없습니다` | 포크에 `watchlist.json` 커밋 안 됨 |
 | 예약 실행이 실패로 끝남 | 세션 로그에서 어느 단계인지 확인 → `npm install`(setup) / collect / send 순 |
 | `Blocked by egress policy` / `upstream connect error` | 클라우드 세션의 **프록시를 안 탄 것**. Node 내장 fetch 는 `HTTPS_PROXY` 를 자동으로 쓰지 않아서, `npm run *` 스크립트가 `NODE_USE_ENV_PROXY=1` 을 켭니다(Node 22.15+ 필요). 스크립트 대신 `tsx` 를 직접 실행했다면 이 변수를 붙이세요 |
-| US 실적이 0건 | FMP 무료 티어는 **일부 종목만** 허용합니다. 그 외 종목은 402 를 주고 `요금제 미포함 종목 … skip` 로 로그에 남습니다(장애 아님). 실적이 꼭 필요하면 유료 플랜 |
+| `[collect:fmp] 요금제 미포함 종목 … skip` | 정상입니다. FMP 무료 티어는 **일부 종목만**(AAPL 등) 허용해서 나머지는 402 를 줍니다. 그 공백은 키가 필요 없는 **Nasdaq 수집기**가 채우므로 US 실적은 그대로 나옵니다 |
 
 ---
 
