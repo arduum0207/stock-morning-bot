@@ -10,6 +10,26 @@
 
 ## 단계
 
+### 0-1. 부트스트랩 (레포가 안 붙은 루틴용)
+루틴을 **대상 레포를 지정해서** 만들었다면 세션은 이미 레포 루트에서 시작하므로 이 단계는 건너뛴다.
+반대로 레포가 안 붙은 루틴(예: 에이전트가 MCP로 만든 루틴)은 **빈 작업공간**에서 뜨고, 그러면 이 파일조차
+못 읽고 죽는다. 그런 루틴이라면 프롬프트 맨 앞에 아래 블록을 넣어 세션이 스스로 레포를 확보하게 한다.
+
+```
+## 0단계 · 부트스트랩
+순서대로 시도해 ROUTINE.md 가 있는 디렉터리를 확보한 뒤 거기서 작업한다.
+1. `ls ROUTINE.md` — 보이면 그대로 진행
+2. `find ~ -maxdepth 4 -name ROUTINE.md 2>/dev/null` — 찾으면 그 디렉터리로 이동
+3. `git clone https://github.com/<내계정>/stock-morning-bot && cd stock-morning-bot`
+4. 3이 403/권한 오류면 MCP 툴 add_repo(owner=<내계정>, repo=stock-morning-bot, access=push) 호출 후 안내된 clone 실행
+5. node_modules 가 없으면 `npm install`
+전부 실패하면 조용히 죽지 말고, TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID 로
+https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage 에
+"⚠️ 아침 브리핑 실패 — 레포 준비 불가: <사유 한 줄>" 을 보내고 종료한다.
+```
+
+> 근본 해결은 **앱의 Routines 에서 대상 레포를 지정해 루틴을 다시 만드는 것**이다. 부트스트랩은 보험이다.
+
 ### 0. 텔레그램 명령 처리 (관심종목 추가/삭제)
 ```bash
 npm run commands
@@ -79,5 +99,7 @@ npm run send out/brief-<YYYY-MM-DD>.html "📈 오늘의 종목 브리핑 · <�
 ---
 
 ## 실패 대응
+- **이 파일(ROUTINE.md)을 못 찾는 경우** → 루틴에 레포가 안 붙은 것. 위 `0-1. 부트스트랩` 참고.
+- **어떤 단계에서 죽든 조용히 끝내지 마라.** 최소한 텔레그램으로 실패 사유 1줄은 보낸다. 알림이 아예 안 오는 게 제일 나쁜 실패다.
 - `npm run collect` 가 throw → watchlist.json / 환경변수 / 네트워크 allowlist 를 점검(README 트러블슈팅 참고). 그래도 안 되면 그 사실을 텔레그램으로 1줄 알린다.
 - 텔레그램 전송 실패 → `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` 와 `api.telegram.org` allowlist 확인.
