@@ -210,6 +210,8 @@ npm run send out/collected.json "테스트"   # 텔레그램 도착 확인(아�
 | KR 공시가 안 옴 | `watchlist.json` 에 `dartCorpCode` 없음 (뉴스는 정상). 고유번호 추가하면 공시도 수집 |
 | `watchlist 파일을 찾을 수 없습니다` | 포크에 `watchlist.json` 커밋 안 됨 |
 | 예약 실행이 실패로 끝남 | 세션 로그에서 어느 단계인지 확인 → `npm install`(setup) / collect / send 순 |
+| `Blocked by egress policy` / `upstream connect error` | 클라우드 세션의 **프록시를 안 탄 것**. Node 내장 fetch 는 `HTTPS_PROXY` 를 자동으로 쓰지 않아서, `npm run *` 스크립트가 `NODE_USE_ENV_PROXY=1` 을 켭니다(Node 22.15+ 필요). 스크립트 대신 `tsx` 를 직접 실행했다면 이 변수를 붙이세요 |
+| US 실적이 0건 | FMP 무료 티어는 **일부 종목만** 허용합니다. 그 외 종목은 402 를 주고 `요금제 미포함 종목 … skip` 로 로그에 남습니다(장애 아님). 실적이 꼭 필요하면 유료 플랜 |
 
 ---
 
