@@ -2,7 +2,7 @@
  * 수집 오케스트레이터.
  *   1. watchlist.json 로드
  *   2. US 종목 CIK 자동 해석
- *   3. 5종 수집기 병렬 실행 (서로 독립, 일부 실패 허용)
+ *   3. 수집기 병렬 실행 (서로 독립, 일부 실패 허용)
  *   4. 병합·중복제거 후 out/collected.json 저장
  *
  * LLM 미사용. 순수 데이터 수집만 한다. 요약·HTML 생성은 예약 에이전트(구독)가 한다.
@@ -21,6 +21,7 @@ import sec from './sec';
 import naverNews from './naver-news';
 import naverEarnings from './naver-earnings';
 import fmp from './fmp';
+import nasdaq from './nasdaq';
 import rss from './rss';
 
 const OUT_DIR = process.env.OUT_DIR || 'out';
@@ -51,7 +52,7 @@ async function main() {
   // US 종목 CIK 자동 해석 (SEC 공시용)
   await resolveCik(tickers);
 
-  const collectors: Record<string, Collector> = { dart, sec, naverNews, naverEarnings, fmp, rss };
+  const collectors: Record<string, Collector> = { dart, sec, naverNews, naverEarnings, fmp, nasdaq, rss };
   const entries = Object.entries(collectors);
   const settled = await Promise.allSettled(entries.map(([, fn]) => fn(tickers)));
 
@@ -74,6 +75,8 @@ async function main() {
 
   merged.news = dedupe(merged.news, (n) => n.url);
   merged.filings = dedupe(merged.filings, (f) => f.url);
+  // 같은 실적을 두 소스(FMP·Nasdaq)가 함께 주는 경우가 있다.
+  merged.earnings = dedupe(merged.earnings, (e) => `${e.ticker}|${e.eventDate ?? e.period ?? ''}`);
 
   await mkdir(OUT_DIR, { recursive: true });
   const outPath = path.join(OUT_DIR, 'collected.json');
