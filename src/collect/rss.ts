@@ -1,27 +1,10 @@
 /**
  * Yahoo Finance RSS — 미국(US) 종목 뉴스 수집. 키 불필요.
  * https://feeds.finance.yahoo.com/rss/2.0/headline?s=TICKER&region=US&lang=en-US
- * 의존성 없이 정규식으로 <item> 파싱.
+ * XML 파싱은 common.ts 의 parseRssItems (의존성 없는 정규식 파서)를 쓴다.
  */
 import type { WatchTicker, NewsItem, CollectResult, Collector } from '../types';
-import { fetchText, SOURCE_UA, toIso, log } from './common';
-
-function decode(s: string): string {
-  return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&quot;/g, '"')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .trim();
-}
-
-function field(block: string, tag: string): string | null {
-  const m = block.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'i'));
-  return m ? decode(m[1]) : null;
-}
+import { fetchText, parseRssItems, SOURCE_UA, toIso, log } from './common';
 
 const rss: Collector = async (tickers: WatchTicker[]): Promise<CollectResult> => {
   const targets = tickers.filter((t) => t.market === 'US');
@@ -36,19 +19,15 @@ const rss: Collector = async (tickers: WatchTicker[]): Promise<CollectResult> =>
         )}&region=US&lang=en-US`,
         { headers: { 'User-Agent': SOURCE_UA } }
       );
-      const items = xml.match(/<item>([\s\S]*?)<\/item>/gi) ?? [];
-      for (const block of items) {
-        const title = field(block, 'title');
-        const link = field(block, 'link');
-        if (!title || !link) continue;
+      for (const item of parseRssItems(xml)) {
         news.push({
           ticker: t.ticker,
           market: 'US',
           source: 'rss:yahoo',
-          title,
-          url: link,
-          publishedAt: toIso(field(block, 'pubDate')),
-          summary: field(block, 'description'),
+          title: item.title,
+          url: item.link,
+          publishedAt: toIso(item.pubDate),
+          summary: item.description,
         });
       }
     } catch (e) {

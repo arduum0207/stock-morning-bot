@@ -5,7 +5,7 @@ Claude Code 의 **예약 루틴(클라우드)** 으로 돌아가며, 비용은 �
 
 ## 동작 한눈에
 1. `npm run collect` → 수집기들이 watchlist.json 종목의 데이터를 모아 `out/collected.json` 저장 (LLM 미사용)
-2. **예약 에이전트(=너, 구독)** 가 `out/collected.json` 을 읽어 종목별로 요약·정렬하고 자체완결형 HTML 생성
+2. **예약 에이전트(=너, 구독)** 가 `out/collected.json` 을 읽어 **시장 개요(맨 앞) + 종목별**로 요약·정렬하고 자체완결형 HTML 생성
 3. `npm run send out/brief-<날짜>.html "<캡션>"` → 텔레그램 문서 첨부 전송
 
 매일 따를 구체 절차는 **ROUTINE.md** 에 있다.
@@ -20,6 +20,7 @@ Claude Code 의 **예약 루틴(클라우드)** 으로 돌아가며, 비용은 �
 - **요약·HTML 생성은 에이전트(구독)가 직접 한다.** `ANTHROPIC_API_KEY` 등으로 외부 LLM API를 호출하지 말 것 — 그건 종량 과금이다. 예약 루틴 자체가 구독으로 도는 게 이 프로젝트의 핵심.
 - 시크릿(토큰·API 키)은 **Cloud Environment 환경변수**로만 주입. 레포에 키를 커밋하지 않는다.
 - 수집기는 외부 API가 없으면(해당 env 미설정) 조용히 skip 한다 — 일부 소스만 있어도 동작한다.
+- `collected.json` 의 `market` 필드는 **종목과 무관한 시장 전체 재료**(뉴스·지수·경제지표·대형주 실적)다. 브리핑 맨 앞 "오늘의 시장" 섹션이 여기서 나온다.
 
 ## 구조
 ```
@@ -34,6 +35,9 @@ src/
     fmp.ts            US 실적 (FMP — 무료 티어는 일부 종목만)
     nasdaq.ts         US 실적 (Nasdaq, 키 불필요 — FMP 공백 보완)
     rss.ts            US 뉴스 (Yahoo RSS)
+    market-news.ts    시장 전체 뉴스 (네이버 매크로 키워드 + Yahoo 시장 RSS)
+    market-index.ts   지수·환율·금리 (네이버 + FMP)
+    econ-calendar.ts  경제지표 캘린더 (Nasdaq, 키 불필요)
     cik.ts            US ticker→CIK 자동 해석
     run.ts            오케스트레이터 → out/collected.json
   telegram.ts         sendDocument / sendMessage

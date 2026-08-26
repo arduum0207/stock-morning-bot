@@ -23,6 +23,23 @@
   header .date { color:var(--sub); font-size:13px; }
   .signal { background:#fff; border:1px solid var(--line); border-left:4px solid var(--ink);
     border-radius:8px; padding:12px 14px; margin-bottom:22px; font-size:14px; }
+  /* ── 시장 개요(맨 앞 섹션) ── */
+  .section-head { font-size:13px; font-weight:700; color:var(--sub); letter-spacing:0.4px;
+    margin:0 0 10px; padding-left:2px; }
+  .market { margin-bottom:28px; }
+  .strip { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .strip .q { flex:1 1 30%; min-width:100px; background:#fff; border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; }
+  .strip .q .k { font-size:11.5px; color:var(--sub); }
+  .strip .q .v { font-size:15px; font-weight:700; }
+  .strip .q .d { font-size:11.5px; }
+  .up { color:var(--up); } .down { color:var(--down); } .flat { color:var(--sub); }
+  .cal { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+    border-radius:10px; overflow:hidden; font-size:12.5px; margin-bottom:10px; }
+  .cal th, .cal td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); }
+  .cal th { background:#f0f2f5; color:var(--sub); font-weight:600; font-size:11.5px; }
+  .cal tr:last-child td { border-bottom:none; }
+  .cal td.num { text-align:right; font-variant-numeric:tabular-nums; }
   .ticker-group { margin-bottom:26px; }
   .ticker-head { display:flex; align-items:baseline; gap:8px; margin:0 0 10px; }
   .ticker-head .name { font-size:17px; font-weight:700; }
@@ -52,6 +69,48 @@
 
   <div class="signal">
     <strong>오늘의 한 줄</strong> — 엔비디아 HBM 수요 강세 지속, 삼성전자 신규 공시 1건. 전반적으로 반도체 섹터 우호적.
+  </div>
+
+  <!-- ── 시장 개요: 종목 섹션보다 먼저 온다 (ROUTINE 3-0) ── -->
+  <div class="market">
+    <div class="section-head">🌐 오늘의 시장</div>
+
+    <div class="strip">
+      <div class="q"><div class="k">코스피</div><div class="v">6,760.89</div><div class="d up">+18.15 (+0.27%)</div></div>
+      <div class="q"><div class="k">코스닥</div><div class="v">822.25</div><div class="d down">-4.90 (-0.59%)</div></div>
+      <div class="q"><div class="k">원/달러</div><div class="v">1,382.7원</div><div class="d down">-0.80 (-0.06%)</div></div>
+      <div class="q"><div class="k">S&amp;P 500</div><div class="v">7,675.83</div><div class="d up">+22.97 (+0.30%)</div></div>
+      <div class="q"><div class="k">나스닥</div><div class="v">26,151.30</div><div class="d up">+171.11 (+0.66%)</div></div>
+      <div class="q"><div class="k">미국채 10년</div><div class="v">4.641%</div><div class="d flat">+0.00 (+0.08%)</div></div>
+    </div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag">매크로</span><span class="tag pos">긍정</span></div>
+      <a class="title" href="https://example.com/macro/1" target="_blank" rel="noopener">잭슨홀 발언 이후 9월 인하 기대 재점화 — 미 국채 2년물 급락</a>
+      <p class="summary">연준 의장이 노동시장 둔화를 언급하며 정책 전환 여지를 시사. 선물시장의 9월 인하 확률이 하루 만에 크게 올랐다. <strong>→ 금리 민감주·성장주 전반에 우호적. 보유 중 NBIS·ORCL 관련.</strong></p>
+      <div class="meta">네이버뉴스 · 08-26 07:10</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">정책</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://example.com/policy/1" target="_blank" rel="noopener">미, 반도체 장비 대중 수출통제 추가 검토</a>
+      <p class="summary">규제 범위가 HBM 공정 장비까지 넓어질 수 있다는 보도. <strong>→ 삼성전자·SK하이닉스 중국 라인 영향 주시.</strong></p>
+      <div class="meta">Reuters · 08-26 05:40</div>
+    </div>
+
+    <div class="section-head" style="margin-top:16px">📅 주요 경제지표 <span style="font-weight:400">(한국시간)</span></div>
+    <table class="cal">
+      <tr><th>일시</th><th>국가</th><th>지표</th><th class="num">실제</th><th class="num">예상</th></tr>
+      <tr><td>어제 21:30</td><td>미국</td><td>신규주택착공</td><td class="num up">+4.3%</td><td class="num">+5.0%</td></tr>
+      <tr><td>내일 21:30</td><td>미국</td><td>2분기 GDP 잠정치</td><td class="num">—</td><td class="num">2.1%</td></tr>
+    </table>
+
+    <div class="section-head" style="margin-top:16px">🏛 주요 기업 실적</div>
+    <table class="cal">
+      <tr><th>일자</th><th>기업</th><th>시점</th><th class="num">EPS 컨센</th></tr>
+      <tr><td>08-27</td><td><strong>NVIDIA (NVDA)</strong></td><td>장마감 후</td><td class="num">$2.09</td></tr>
+      <tr><td>09-03</td><td>Broadcom (AVGO)</td><td>장마감 후</td><td class="num">$2.83</td></tr>
+    </table>
   </div>
 
   <div class="ticker-group">
