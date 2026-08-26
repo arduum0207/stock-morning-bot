@@ -1,7 +1,17 @@
 /**
  * 경제지표 캘린더 — Nasdaq. 키 불필요(브라우저 UA 필요).
  *   GET /api/calendar/economicevents?date=YYYY-MM-DD
- *     → 그날 발표되는 전 세계 지표. actual/consensus/previous 가 함께 온다.
+ *     → 지표 목록. actual/consensus/previous 가 함께 온다.
+ *
+ * ⚠️ 이 API 의 시간 표기 두 가지가 이름과 다르다. 실측으로 확인한 내용:
+ *   1) 응답의 `gmt` 필드는 GMT 가 아니라 **미 동부시간(ET)** 이다.
+ *      주간 신규실업수당 08:30(ET 고정), EIA 원유재고 10:30(ET 고정),
+ *      일본 BoJ Core CPI 01:00(=14:00 JST), 한국 금통위 21:00(=다음날 10:00 KST)
+ *      — 전부 ET 로 읽어야 실제 발표 시각과 맞는다.
+ *   2) `date` 파라미터는 **이벤트 날짜 + 1** 이다. date=토요일 로 요청하면 금요일
+ *      지표(시카고 PMI·미시간 소비자심리)가 23건 나오고, date=일요일 은 토요일
+ *      이벤트만 1건 나온다. 그래서 D일 지표를 받으려면 D+1 로 요청해야 한다.
+ * 두 보정을 거친 뒤 한국 사용자 기준으로 **KST 로 변환해서** 저장한다.
  *
  * 어제(=간밤 미국장 결과) ~ 앞으로 3영업일만 본다. 전 세계를 다 담으면 노이즈라
  * COUNTRIES 의 주요국만 남기고, 국채 입찰·주간 집계처럼 시장 브리핑에 쓸모없는
@@ -31,9 +41,12 @@ const COUNTRIES = new Set([
 const NOISE =
   /(Bill|Note|Bond) Auction|Redbook|Baker Hughes|Money Supply|MBA |Fed Balance Sheet|API Weekly|Cushing/i;
 
-/** 어제부터 앞으로 며칠(영업일)까지 볼지. */
+/** 어제부터 앞으로 며칠(영업일)까지 볼지. ET 기준 이벤트 날짜. */
 const FROM_DAYS = -1;
 const TO_DAYS = 3;
+
+const ET = 'America/New_York';
+const KST_OFFSET_MIN = 9 * 60;
 
 /** 정렬 후 남길 최대 건수. high/medium 이 먼저 오므로 잘려나가는 건 잡지표다. */
 const MAX_EVENTS = 40;
@@ -97,20 +110,80 @@ interface EventsResp {
   } | null;
 }
 
+/** 주어진 시점에서 그 타임존의 UTC 오프셋(분). 서머타임(EDT/EST)이 자동 반영된다. */
+function tzOffsetMinutes(timeZone: string, at: Date): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(at);
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? '0');
+  const asIfUtc = Date.UTC(
+    get('year'),
+    get('month') - 1,
+    get('day'),
+    get('hour') % 24,
+    get('minute'),
+    get('second')
+  );
+  return (asIfUtc - at.getTime()) / 60_000;
+}
+
+/** ET 기준 오늘 날짜(YYYY-MM-DD). 컨테이너가 UTC 라도 미국 날짜로 맞춘다. */
+function todayInEt(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ET }).format(new Date());
+}
+
+/** "2026-08-27" + n일 */
+function addDays(date: string, n: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+  return isoDate(d);
+}
+
+/**
+ * ET 기준 날짜·시각 → KST 날짜·시각.
+ * 시각이 없는(하루 종일) 이벤트는 변환하지 않고 ET 날짜를 그대로 둔다.
+ */
+function etToKst(date: string, time: string | null): { date: string; time: string | null } {
+  if (!time || !/^\d{1,2}:\d{2}$/.test(time)) return { date, time: null };
+  const [h, m] = time.split(':').map(Number);
+  const naive = Date.UTC(
+    Number(date.slice(0, 4)),
+    Number(date.slice(5, 7)) - 1,
+    Number(date.slice(8, 10)),
+    h,
+    m
+  );
+  // ET 벽시계 시각을 실제 UTC 시각으로 되돌린 뒤, KST 로 옮긴다.
+  const offset = tzOffsetMinutes(ET, new Date(naive));
+  const kst = new Date(naive - offset * 60_000 + KST_OFFSET_MIN * 60_000);
+  return {
+    date: kst.toISOString().slice(0, 10),
+    time: kst.toISOString().slice(11, 16),
+  };
+}
+
 /** "&nbsp;" · 공백만 있는 값 → null */
 function val(v: string | undefined): string | null {
   const s = (v ?? '').replace(/&nbsp;/g, ' ').trim();
   return s === '' ? null : s;
 }
 
-/** from~to 일 사이의 영업일(주말 제외) 날짜 목록 */
+/** ET 기준 오늘로부터 from~to 일 사이의 영업일(주말 제외) 날짜 목록 */
 function weekdayRange(from: number, to: number): string[] {
+  const today = todayInEt();
   const out: string[] = [];
   for (let i = from; i <= to; i++) {
-    const d = new Date(Date.now() + i * 86_400_000);
-    const dow = d.getUTCDay();
+    const date = addDays(today, i);
+    const dow = new Date(`${date}T00:00:00Z`).getUTCDay();
     if (dow === 0 || dow === 6) continue;
-    out.push(isoDate(d));
+    out.push(date);
   }
   return out;
 }
@@ -118,19 +191,21 @@ function weekdayRange(from: number, to: number): string[] {
 const econCalendar: Collector = async (): Promise<CollectResult> => {
   const economicEvents: EconomicEvent[] = [];
 
-  for (const date of weekdayRange(FROM_DAYS, TO_DAYS)) {
+  for (const eventDate of weekdayRange(FROM_DAYS, TO_DAYS)) {
     try {
+      // date 파라미터는 이벤트 날짜 + 1 (파일 상단 주석 참고)
       const data = await fetchJson<EventsResp>(
-        `https://api.nasdaq.com/api/calendar/economicevents?date=${date}`,
+        `https://api.nasdaq.com/api/calendar/economicevents?date=${addDays(eventDate, 1)}`,
         { headers: UA }
       );
       for (const row of data.data?.rows ?? []) {
         const country = (row.country ?? '').trim();
         const event = val(row.eventName);
         if (!event || !COUNTRIES.has(country) || NOISE.test(event)) continue;
+        const kst = etToKst(eventDate, val(row.gmt));
         economicEvents.push({
-          date,
-          time: val(row.gmt),
+          date: kst.date,
+          time: kst.time,
           country,
           event,
           importance: importanceOf(event, country),
@@ -140,7 +215,7 @@ const econCalendar: Collector = async (): Promise<CollectResult> => {
         });
       }
     } catch (e) {
-      log('econ', `${date} 실패: ${(e as Error).message}`);
+      log('econ', `${eventDate} 실패: ${(e as Error).message}`);
     }
   }
 

@@ -48,7 +48,8 @@ npm run collect
     ⚠️ FRED 계열(`source:"fred"`)만 갱신이 늦다(1~5영업일). `asOf` 가 오늘이 아니면
     **"(8/21 기준)" 처럼 날짜를 붙여라.** 금리·스프레드는 `changePercent` 가 null 이고
     `change` 가 %p 단위다.
-  - `market.economicEvents[]`: `{ date, time(GMT), country, event, importance, actual, consensus, previous }`
+  - `market.economicEvents[]`: `{ date, time, country, event, importance, actual, consensus, previous }`
+    **날짜·시각은 이미 KST 로 변환돼 있다** — 다시 환산하지 마라.
     어제~향후 3영업일. 주요국만, 국채 입찰류 노이즈는 이미 걸러져 있다.
     **`importance`(high/medium/low) 순으로 정렬돼 있다** — 위에서부터 집으면 된다.
   - `market.majorEarnings[]` : `{ symbol, name, eventDate, when, marketCap, epsEstimated }`
@@ -74,9 +75,9 @@ npm run collect
    - **`importance:"high"` 를 먼저 쓰고**, 자리가 남으면 medium 에서 채운다. low 는 웬만하면 버린다.
      (등급은 이벤트 이름으로 우리가 매긴 것이라 완벽하진 않다 — 명백히 사소하면 네가 빼라.)
    - 어제 발표(`actual` 있음)는 컨센서스 대비 어땠는지, 예정된 건 날짜·시각과 컨센서스를 적는다.
+   - `time` 이 null 이면 시각 미공개(하루 종일) 이벤트다 — 날짜만 쓴다.
    - 같은 지표의 MoM/YoY 가 이름이 같은 채로 두 줄 오는 경우가 있다(예: PCE Price Index).
      한 항목으로 합쳐서 "전월비 +0.2% / 전년비 +3.3%" 처럼 쓴다.
-   - 시각은 GMT 기준이다 — **한국시간(KST=GMT+9)으로 환산**해 표기한다.
 4. **주요 기업 실적 일정** — `market.majorEarnings` 에서 이름 있는 곳 위주로 5개 내외.
    - 오늘/내일 발표하는 대형주(특히 엔비디아·브로드컴 등 보유 종목과 같은 섹터)는 강조한다.
    - 이미 `earnings[]` 에 있는 보유 종목 실적은 여기 중복해 넣지 말고 종목 섹션에서 다룬다.
