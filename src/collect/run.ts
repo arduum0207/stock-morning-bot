@@ -26,6 +26,8 @@ import rss from './rss';
 import marketNews from './market-news';
 import marketIndex from './market-index';
 import econCalendar from './econ-calendar';
+import fred from './fred';
+import finnhubNews from './finnhub-news';
 
 const OUT_DIR = process.env.OUT_DIR || 'out';
 
@@ -67,6 +69,8 @@ async function main() {
     marketNews,
     marketIndex,
     econCalendar,
+    fred,
+    finnhubNews,
   };
   const entries = Object.entries(collectors);
   const settled = await Promise.allSettled(entries.map(([, fn]) => fn(tickers, wl)));
