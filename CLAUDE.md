@@ -47,6 +47,7 @@ src/
 templates/sample-brief.html   생성할 HTML 스타일 레퍼런스
 watchlist.json        종목 리스트 (각자 자기 포크에서 편집)
 ROUTINE.md            예약 에이전트의 매일 절차
+docs/DATA-SOURCES.md  소스별 무료 티어 실측 결과·함정 정리 (소스 손대기 전에 읽을 것)
 README.md             셋업 가이드(친구 배포용)
 ```
 
