@@ -109,8 +109,9 @@ export type Importance = 'high' | 'medium' | 'low';
 
 /** 경제지표 발표 일정·결과 (미국 CPI, 한국 수출 등). */
 export interface EconomicEvent {
+  /** KST 기준 발표 날짜. (소스는 ET 기준이라 수집기가 변환해 넣는다) */
   date: string;
-  /** GMT 기준 시각 "13:30". 없을 수 있다. */
+  /** KST 기준 시각 "21:30". 시각 없는(하루 종일) 이벤트는 null. */
   time?: string | null;
   country: string;
   event: string;

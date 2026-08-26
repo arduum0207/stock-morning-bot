@@ -2,10 +2,11 @@
  * 시장 지표(지수·환율·금리) 수집 — 브리핑 맨 앞 "오늘의 시장" 스트립용.
  *
  * 종목과 무관한 시장 전체 데이터라 watchlist 를 쓰지 않는다. 두 소스를 섞는다:
- *   - FMP  /stable/quote?symbol=^GSPC     → 미국 지수·비트코인 (FMP_API_KEY 필요)
- *       무료 티어에서 ^GSPC·^IXIC·BTCUSD 만 열려 있다. 그 밖의 심볼(^KS11·CL=F·
- *       DX-Y.NYB 등)은 402 라 넣지 않는다 — 한국 쪽은 네이버가 대신 준다.
- *   - 네이버 m.stock  → 코스피·코스닥·원달러·미국채 10년 (키 불필요)
+ *   - FMP  /stable/quote?symbol=^GSPC     → 미국 지수·VIX·비트코인 (FMP_API_KEY 필요)
+ *       무료 티어에서 ^GSPC·^IXIC·^DJI·^VIX·BTCUSD 가 열린다. ^KS11·DX-Y.NYB 등은
+ *       402 라 넣지 않는다 — 한국 쪽은 네이버가 대신 준다.
+ *   - 네이버 m.stock  → 코스피·코스닥·원달러·미국채 10년 + WTI·브렌트·금 (키 불필요)
+ *       원자재는 FRED 도 주지만 최대 일주일 지연이라, 실시간인 이쪽을 쓴다.
  *
  * 소스가 죽거나 키가 없으면 그 항목만 조용히 빠진다(부분 실패 허용).
  */
@@ -16,6 +17,8 @@ import { fetchJson, log } from './common';
 const FMP_SYMBOLS: Array<{ symbol: string; name: string }> = [
   { symbol: '^GSPC', name: 'S&P 500' },
   { symbol: '^IXIC', name: '나스닥' },
+  { symbol: '^DJI', name: '다우' },
+  { symbol: '^VIX', name: 'VIX' },
   { symbol: 'BTCUSD', name: '비트코인' },
 ];
 
@@ -25,10 +28,16 @@ const NAVER_INDEXES: Array<{ code: string; name: string }> = [
   { code: 'KOSDAQ', name: '코스닥' },
 ];
 
-/** 네이버 시장지표 (front-api /marketIndex/productDetail). */
+/**
+ * 네이버 시장지표 (front-api /marketIndex/productDetail).
+ * reutersCode 는 네이버 시장지표 페이지에서 쓰는 코드 그대로다(WTI=CLcv1 등).
+ */
 const NAVER_MARKET: Array<{ category: string; code: string; name: string; unit: string | null }> = [
   { category: 'exchange', code: 'FX_USDKRW', name: '원/달러', unit: '원' },
   { category: 'bond', code: 'US10YT=RR', name: '미국 국채 10년', unit: '%' },
+  { category: 'energy', code: 'CLcv1', name: 'WTI 유가', unit: '$' },
+  { category: 'energy', code: 'LCOcv1', name: '브렌트유', unit: '$' },
+  { category: 'metals', code: 'GCcv1', name: '국제 금', unit: '$' },
 ];
 
 interface FmpQuote {
