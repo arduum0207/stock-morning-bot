@@ -43,8 +43,9 @@ npm run collect
     `scope` = `macro`(금리·물가·환율) / `policy`(정책·규제·정치) / `industry`(업황) / `global`(그 외)
   - `market.indices[]`      : `{ name, symbol, price, change, changePercent, unit, source }`
     코스피·코스닥·원/달러·미국채10년(네이버) + S&P500·나스닥·비트코인(FMP)
-  - `market.economicEvents[]`: `{ date, time(GMT), country, event, actual, consensus, previous }`
+  - `market.economicEvents[]`: `{ date, time(GMT), country, event, importance, actual, consensus, previous }`
     어제~향후 3영업일. 주요국만, 국채 입찰류 노이즈는 이미 걸러져 있다.
+    **`importance`(high/medium/low) 순으로 정렬돼 있다** — 위에서부터 집으면 된다.
   - `market.majorEarnings[]` : `{ symbol, name, eventDate, when, marketCap, epsEstimated }`
     향후 7일 이내 발표하는 시총 1,000억 달러 이상 대형주 (보유 종목 아니어도 포함)
 
@@ -63,8 +64,11 @@ npm run collect
    - 같은 사건 중복 기사는 1개로 합치고, **한국어 2~3문장**으로 요약 + "왜 중요한지" 한 줄.
    - 보유 종목에 영향이 있는 항목은 그 종목명을 함께 적어 준다(예: "→ 삼성전자·SK하이닉스").
 3. **주요 경제지표** — `market.economicEvents` 에서 **의미 있는 것만 3~6개**.
+   - **`importance:"high"` 를 먼저 쓰고**, 자리가 남으면 medium 에서 채운다. low 는 웬만하면 버린다.
+     (등급은 이벤트 이름으로 우리가 매긴 것이라 완벽하진 않다 — 명백히 사소하면 네가 빼라.)
    - 어제 발표(`actual` 있음)는 컨센서스 대비 어땠는지, 예정된 건 날짜·시각과 컨센서스를 적는다.
-   - FOMC·CPI·고용·금통위·수출입 같은 큰 이벤트를 우선한다. 지엽적인 주간 지표는 버린다.
+   - 같은 지표의 MoM/YoY 가 이름이 같은 채로 두 줄 오는 경우가 있다(예: PCE Price Index).
+     한 항목으로 합쳐서 "전월비 +0.2% / 전년비 +3.3%" 처럼 쓴다.
    - 시각은 GMT 기준이다 — **한국시간(KST=GMT+9)으로 환산**해 표기한다.
 4. **주요 기업 실적 일정** — `market.majorEarnings` 에서 이름 있는 곳 위주로 5개 내외.
    - 오늘/내일 발표하는 대형주(특히 엔비디아·브로드컴 등 보유 종목과 같은 섹터)는 강조한다.

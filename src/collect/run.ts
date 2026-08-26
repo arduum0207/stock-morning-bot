@@ -102,9 +102,11 @@ async function main() {
   merged.earnings = dedupe(merged.earnings, (e) => `${e.ticker}|${e.eventDate ?? e.period ?? ''}`);
   // 시장 뉴스는 여러 키워드에 같은 기사가 걸린다 — URL 로 1건만 남긴다.
   merged.market.news = dedupe(merged.market.news, (n: MarketNewsItem) => n.url);
+  // 같은 지표의 MoM/YoY 가 이름까지 똑같이 오는 경우가 있다(PCE·주택착공 등).
+  // 값까지 키에 넣어야 그 둘이 살아남는다 — 진짜 중복은 값도 같으므로 그대로 걸러진다.
   merged.market.economicEvents = dedupe(
     merged.market.economicEvents,
-    (e) => `${e.date}|${e.country}|${e.event}`
+    (e) => `${e.date}|${e.country}|${e.event}|${e.actual ?? ''}|${e.consensus ?? ''}`
   );
   merged.market.majorEarnings = dedupe(merged.market.majorEarnings, (e) => `${e.symbol}|${e.eventDate}`);
 

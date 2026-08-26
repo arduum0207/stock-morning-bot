@@ -101,6 +101,12 @@ export interface IndexQuote {
   asOf?: string | null;
 }
 
+/**
+ * 경제지표의 시장 파급력 등급. 무료 소스(Nasdaq)는 등급을 주지 않아서
+ * 우리가 이벤트 이름·국가로 매긴다. 에이전트는 high 부터 훑으면 된다.
+ */
+export type Importance = 'high' | 'medium' | 'low';
+
 /** 경제지표 발표 일정·결과 (미국 CPI, 한국 수출 등). */
 export interface EconomicEvent {
   date: string;
@@ -108,6 +114,7 @@ export interface EconomicEvent {
   time?: string | null;
   country: string;
   event: string;
+  importance: Importance;
   actual?: string | null;
   consensus?: string | null;
   previous?: string | null;
