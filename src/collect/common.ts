@@ -109,6 +109,42 @@ export async function fetchText(
   return await res.text();
 }
 
+/** XML 엔티티·CDATA 를 벗겨 순수 텍스트로. (RSS 파싱용) */
+export function decodeXml(s: string): string {
+  return s
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .trim();
+}
+
+export interface RssItem {
+  title: string;
+  link: string;
+  pubDate: string | null;
+  description: string | null;
+}
+
+/** 의존성 없이 정규식으로 RSS <item> 을 뽑는다. title·link 없는 항목은 버린다. */
+export function parseRssItems(xml: string): RssItem[] {
+  const field = (block: string, tag: string): string | null => {
+    const m = block.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, 'i'));
+    return m ? decodeXml(m[1]) : null;
+  };
+  const out: RssItem[] = [];
+  for (const block of xml.match(/<item>([\s\S]*?)<\/item>/gi) ?? []) {
+    const title = field(block, 'title');
+    const link = field(block, 'link');
+    if (!title || !link) continue;
+    out.push({ title, link, pubDate: field(block, 'pubDate'), description: field(block, 'description') });
+  }
+  return out;
+}
+
 export function log(tag: string, msg: string): void {
   console.log(`[collect:${tag}] ${msg}`);
 }

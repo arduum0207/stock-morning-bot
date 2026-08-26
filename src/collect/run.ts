@@ -15,7 +15,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { loadWatchlist } from '../config';
 import { resolveCik } from './cik';
-import type { Collected, Collector } from '../types';
+import type { Collected, Collector, MarketNewsItem } from '../types';
 import dart from './dart';
 import sec from './sec';
 import naverNews from './naver-news';
@@ -23,6 +23,11 @@ import naverEarnings from './naver-earnings';
 import fmp from './fmp';
 import nasdaq from './nasdaq';
 import rss from './rss';
+import marketNews from './market-news';
+import marketIndex from './market-index';
+import econCalendar from './econ-calendar';
+import fred from './fred';
+import finnhubNews from './finnhub-news';
 
 const OUT_DIR = process.env.OUT_DIR || 'out';
 
@@ -52,15 +57,30 @@ async function main() {
   // US 종목 CIK 자동 해석 (SEC 공시용)
   await resolveCik(tickers);
 
-  const collectors: Record<string, Collector> = { dart, sec, naverNews, naverEarnings, fmp, nasdaq, rss };
+  const collectors: Record<string, Collector> = {
+    dart,
+    sec,
+    naverNews,
+    naverEarnings,
+    fmp,
+    nasdaq,
+    rss,
+    // 종목과 무관한 시장 전체 재료 (브리핑 맨 앞 "오늘의 시장" 섹션)
+    marketNews,
+    marketIndex,
+    econCalendar,
+    fred,
+    finnhubNews,
+  };
   const entries = Object.entries(collectors);
-  const settled = await Promise.allSettled(entries.map(([, fn]) => fn(tickers)));
+  const settled = await Promise.allSettled(entries.map(([, fn]) => fn(tickers, wl)));
 
   const merged: Collected = {
     generatedAt: new Date().toISOString(),
     news: [],
     filings: [],
     earnings: [],
+    market: { news: [], indices: [], economicEvents: [], majorEarnings: [] },
   };
   settled.forEach((r, i) => {
     const name = entries[i][0];
@@ -68,6 +88,13 @@ async function main() {
       merged.news.push(...(r.value.news ?? []));
       merged.filings.push(...(r.value.filings ?? []));
       merged.earnings.push(...(r.value.earnings ?? []));
+      const m = r.value.market;
+      if (m) {
+        merged.market.news.push(...(m.news ?? []));
+        merged.market.indices.push(...(m.indices ?? []));
+        merged.market.economicEvents.push(...(m.economicEvents ?? []));
+        merged.market.majorEarnings.push(...(m.majorEarnings ?? []));
+      }
     } else {
       console.error(`⚠️ ${name} 수집기 실패: ${r.reason}`);
     }
@@ -77,6 +104,15 @@ async function main() {
   merged.filings = dedupe(merged.filings, (f) => f.url);
   // 같은 실적을 두 소스(FMP·Nasdaq)가 함께 주는 경우가 있다.
   merged.earnings = dedupe(merged.earnings, (e) => `${e.ticker}|${e.eventDate ?? e.period ?? ''}`);
+  // 시장 뉴스는 여러 키워드에 같은 기사가 걸린다 — URL 로 1건만 남긴다.
+  merged.market.news = dedupe(merged.market.news, (n: MarketNewsItem) => n.url);
+  // 같은 지표의 MoM/YoY 가 이름까지 똑같이 오는 경우가 있다(PCE·주택착공 등).
+  // 값까지 키에 넣어야 그 둘이 살아남는다 — 진짜 중복은 값도 같으므로 그대로 걸러진다.
+  merged.market.economicEvents = dedupe(
+    merged.market.economicEvents,
+    (e) => `${e.date}|${e.country}|${e.event}|${e.actual ?? ''}|${e.consensus ?? ''}`
+  );
+  merged.market.majorEarnings = dedupe(merged.market.majorEarnings, (e) => `${e.symbol}|${e.eventDate}`);
 
   await mkdir(OUT_DIR, { recursive: true });
   const outPath = path.join(OUT_DIR, 'collected.json');
@@ -84,6 +120,10 @@ async function main() {
 
   console.log(
     `🧺 수집 합계 — 뉴스 ${merged.news.length} / 공시 ${merged.filings.length} / 실적 ${merged.earnings.length}`
+  );
+  console.log(
+    `🌐 시장 — 뉴스 ${merged.market.news.length} / 지표 ${merged.market.indices.length} / ` +
+      `경제지표 ${merged.market.economicEvents.length} / 대형주실적 ${merged.market.majorEarnings.length}`
   );
   console.log(`✅ 저장: ${outPath}`);
 }

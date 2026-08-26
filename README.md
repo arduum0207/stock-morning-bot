@@ -152,6 +152,9 @@ api.telegram.org
 openapi.naver.com
 ac.stock.naver.com
 m.stock.naver.com
+api.nasdaq.com
+api.stlouisfed.org
+finnhub.io
 opendart.fss.or.kr
 dart.fss.or.kr
 financialmodelingprep.com
