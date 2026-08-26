@@ -2,20 +2,18 @@
  * FRED (세인트루이스 연준) — 매크로 시계열. FRED_API_KEY 필요(무료, 120 req/min).
  *   GET /fred/series/observations?series_id=DCOILWTICO&sort_order=desc&limit=N
  *
- * 네이버·FMP 가 못 주는 것들을 메운다: 유가·달러인덱스·VIX·2년물·장단기 금리차.
+ * 네이버·FMP 가 못 주는 것만 메운다: 달러인덱스·미국채 2년·장단기 금리차.
  * 특히 T10Y2Y(10년-2년 스프레드)는 경기 신호라 매크로 브리핑에서 값이 크다.
  *
- * 주의: 시리즈마다 갱신 주기가 다르다. VIX·금리차는 1영업일 지연, 유가는 최대
- * 일주일까지 밀린다. 그래서 관측일(asOf)을 반드시 함께 넘겨 브리핑에 "8/18 기준"
- * 처럼 찍을 수 있게 한다.
+ * 유가·VIX 도 FRED 에 있지만 최대 일주일까지 밀려서 여기서 빼고 실시간 소스를 쓴다
+ * (유가·금 → 네이버 시장지표, VIX → FMP). 남은 것들도 1~5영업일 지연이 있으므로
+ * 관측일(asOf)을 함께 넘겨 브리핑에 "8/21 기준" 처럼 찍게 한다.
  */
 import type { CollectResult, Collector, IndexQuote } from '../types';
 import { fetchJson, log } from './common';
 
 const SERIES: Array<{ id: string; name: string; unit: string | null }> = [
-  { id: 'DCOILWTICO', name: 'WTI 유가', unit: '$' },
   { id: 'DTWEXBGS', name: '달러인덱스', unit: null },
-  { id: 'VIXCLS', name: 'VIX', unit: null },
   { id: 'DGS2', name: '미국 국채 2년', unit: '%' },
   { id: 'T10Y2Y', name: '장단기 금리차(10Y-2Y)', unit: '%p' },
 ];
