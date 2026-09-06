@@ -142,8 +142,22 @@ export async function getUpdates(): Promise<IncomingMessage[]> {
     `https://api.telegram.org/bot${token}/getUpdates?timeout=0`,
     () => ({})
   );
-  const data = (await res.json().catch(() => ({}))) as { ok?: boolean; result?: TgUpdate[] };
-  if (!data.ok || !data.result) return [];
+  const data = (await res.json().catch(() => ({}))) as {
+    ok?: boolean;
+    result?: TgUpdate[];
+    error_code?: number;
+    description?: string;
+  };
+  // 빈 배열로 뭉개면 "명령이 없었다" 와 "API 가 거부했다" 가 구분이 안 된다.
+  // 특히 409 Conflict(웹훅이 걸려 있거나 다른 프로세스가 동시에 폴링 중)는
+  // 로그에 "새 명령 없음" 만 남아서 원인을 영영 못 찾는다 → 던져서 드러낸다.
+  if (!data.ok) {
+    throw new Error(
+      `텔레그램 getUpdates 거부: HTTP ${res.status}` +
+        `${data.error_code ? ` (error_code ${data.error_code})` : ''} ${data.description ?? ''}`.trimEnd()
+    );
+  }
+  if (!data.result) return [];
 
   const out: IncomingMessage[] = [];
   for (const u of data.result) {

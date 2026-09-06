@@ -10,8 +10,9 @@ name: telegram commands
 
 on:
   schedule:
-    # 10분마다. GitHub 스케줄은 혼잡할 때 수 분~수십 분 밀릴 수 있다(보장 없음).
-    - cron: '*/10 * * * *'
+    # 5분마다(GitHub 최소 간격). 실제로는 혼잡하면 밀리거나 통째로 건너뛴다 — 보장 없음.
+    # 새로 추가한 워크플로는 첫 스케줄이 뜨기까지 10~30분 걸리기도 한다.
+    - cron: '*/5 * * * *'
   workflow_dispatch: # 수동 실행 (Actions 탭 → Run workflow)
 
 permissions:
