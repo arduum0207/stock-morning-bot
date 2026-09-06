@@ -1,0 +1,78 @@
+# 텔레그램 명령(/add·/remove·/list)을 상시 처리한다.
+#
+# 왜 별도 워크플로인가: 아침 브리핑 루틴은 하루 1회라 오후에 /add 하면 다음 날에야 반영된다.
+# `npm run commands` 는 LLM 을 전혀 쓰지 않는 순수 Node 스크립트 → Actions 에서 자주 돌려도
+# Claude 구독 사용량을 먹지 않는다. 요약·HTML 생성은 여기서 하지 않는다(그건 아침 루틴 몫).
+#
+# 켜는 법: 레포 Settings → Secrets and variables → Actions 에 TELEGRAM_BOT_TOKEN,
+# TELEGRAM_CHAT_ID 를 등록. 이 파일이 기본 브랜치에 있어야 스케줄이 돈다(GitHub 규칙).
+name: telegram commands
+
+on:
+  schedule:
+    # 10분마다. GitHub 스케줄은 혼잡할 때 수 분~수십 분 밀릴 수 있다(보장 없음).
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # 수동 실행 (Actions 탭 → Run workflow)
+
+permissions:
+  contents: write # watchlist.json 변경분을 되커밋
+
+# 겹쳐 돌면 getUpdates 오프셋이 경합한다(한쪽이 확정제거한 명령을 다른 쪽이 못 봄).
+concurrency:
+  group: telegram-commands
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      # 시크릿이 없으면(포크 등) 조용히 통과 — 실패 알림 스팸 방지
+      - name: 시크릿 확인
+        id: guard
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "· TELEGRAM_BOT_TOKEN 미설정 → 건너뜀"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 명령 처리
+        if: steps.guard.outputs.ready == 'true'
+        id: commands
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          set -o pipefail
+          npm run commands --silent | tee "$RUNNER_TEMP/out.log"
+          # 스크립트가 마지막 줄에 CHANGED / NOCHANGE 를 찍는다
+          echo "changed=$(tail -n 1 "$RUNNER_TEMP/out.log")" >> "$GITHUB_OUTPUT"
+
+      # 종목이 바뀐 경우에만 커밋. 아침 루틴은 이 브랜치를 clone 하므로 여기 반영돼야 한다.
+      - name: watchlist 커밋·푸시
+        if: steps.commands.outputs.changed == 'CHANGED'
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add watchlist.json
+          git commit -m 'chore: watchlist 업데이트 (telegram)'
+          # 그 사이 다른 커밋(아침 루틴 등)이 올라왔을 수 있다 → rebase 후 재시도
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          echo '::error::watchlist push 실패 — 변경은 다음 실행에서 재시도된다'
+          exit 1
