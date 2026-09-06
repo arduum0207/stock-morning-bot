@@ -107,7 +107,17 @@ GitHub에서 이 레포 우측 상단 **[Fork]** 버튼 클릭. 끝. (다운로�
 /help                사용법
 ```
 > 💡 입력창에 **`/` 만 쳐도 명령 메뉴가 뜹니다** (봇이 자동 등록).
-> ⏰ **실시간이 아닙니다.** 봇은 실행될 때(아침 스케줄 또는 `Run now`)만 명령을 읽어요. 그때 watchlist를 갱신하고 **"➕ 추가: 삼성전자(005930)" 같은 확인 메시지로 답장**합니다. 오후에 `/add` 하면 다음 실행에 반영.
+> 📎 메뉴에서 `/add` 를 **탭하면 인자 없이 그냥 전송**되는데(텔레그램 동작), 이때 봇이
+> *"➕ 추가할 종목명이나 티커를 이 메시지에 답장으로 보내줘"* 라고 되묻습니다. 이 질문은 **ForceReply** 라
+> 입력창이 자동으로 답장 모드로 열려요 — **종목명만 치면** 그게 `/add` 의 인자로 붙습니다.
+> ⏰ **기본은 실시간이 아닙니다.** 봇은 실행될 때(아침 스케줄 또는 `Run now`)만 명령을 읽어요. 그때 watchlist를 갱신하고 **"➕ 추가: 삼성전자(005930)" 같은 확인 메시지로 답장**합니다. 오후에 `/add` 하면 다음 실행에 반영.
+>
+> ⚡ **10분 안에 반영되게 하려면** — `.github/workflows/telegram-commands.yml` 이 들어 있습니다.
+> 레포 **Settings → Secrets and variables → Actions** 에 `TELEGRAM_BOT_TOKEN`·`TELEGRAM_CHAT_ID` 를 등록하면
+> 켜집니다. 10분마다 `npm run commands` 만 돌려 watchlist를 갱신·커밋해요.
+> **Claude 구독 사용량은 안 씁니다** — 이 스크립트는 LLM을 전혀 호출하지 않는 순수 Node 코드고,
+> 요약·HTML 생성은 아침 루틴이 계속 담당합니다. (GitHub 스케줄은 혼잡하면 몇 분 밀릴 수 있어요.)
+> 시크릿을 안 넣으면 워크플로는 그냥 조용히 통과합니다.
 
 #### (B) 파일 직접 수정 — **로컬 모드면 이게 제일 빠름**
 working folder의 `watchlist.json` 을 메모장/VSCode로 열어 고치고 저장하면 **다음 실행에 즉시 반영**됩니다(로컬은 커밋 불필요).
@@ -126,9 +136,9 @@ working folder의 `watchlist.json` 을 메모장/VSCode로 열어 고치고 저�
 
 **필드 설명 (공통)**
 - `ticker` / `name` / `market`(`"KR"` 또는 `"US"`) — 필수.
-- `dartCorpCode`(KR, 선택): 있으면 그 종목 **공시(DART)** 도 수집. 없으면 뉴스·실적만. → [DART 고유번호 찾는 법](https://opendart.fss.or.kr/disclosureinfo/fnltt/dwld/main.do). (삼성전자 `00126380`, SK하이닉스 `00164779`)
-- US 종목은 ticker만 넣으면 SEC 공시용 CIK가 자동 해석됩니다.
-- ⚠️ 텔레그램 `/add`로 넣은 KR 종목은 `dartCorpCode` 가 자동으로 안 들어갑니다(공시 누락, 뉴스·실적은 정상). 공시까지 원하면 (B)/(C)로 그 줄에 직접 추가.
+- `dartCorpCode`(KR, 선택): DART 공시 조회용 고유번호. **안 적어도 됩니다** — `DART_API_KEY` 가 있으면 수집할 때 종목코드로 자동 해석해요. 적어두면 그 값을 그대로 씁니다. → [고유번호 직접 찾기](https://opendart.fss.or.kr/disclosureinfo/fnltt/dwld/main.do) (삼성전자 `00126380`, SK하이닉스 `00164779`)
+- US 종목도 ticker만 넣으면 SEC 공시용 CIK가 자동 해석됩니다.
+- 즉 **`ticker`·`name`·`market` 세 개만 있으면 뉴스·공시·실적이 다 붙습니다.** 텔레그램 `/add` 로 넣은 종목도 마찬가지.
 
 ### 4단계 — Cloud Environment 설정 (가장 중요)
 
@@ -201,7 +211,6 @@ npm run send out/collected.json "테스트"   # 텔레그램 도착 확인(아�
 - **요금**: 예약 루틴은 별도 VM 과금 없이 **내 Claude 구독의 사용량 한도**를 같이 씁니다. 하루 1회 아침 실행은 부담 적습니다.
 - **자격**: Claude Code on the web/예약 루틴은 Pro/Max/Team 플랜 대상(리서치 프리뷰). 플랜에 따라 안 보일 수 있습니다.
 - **종목 바꾸기**: 언제든 포크의 `watchlist.json` 만 수정·커밋하면 다음 실행부터 반영됩니다.
-- **텔레그램 `/add` 로 넣은 KR 종목은 공시가 빠집니다**: 자동완성은 종목코드만 채우고 `dartCorpCode` 는 못 채웁니다(뉴스·실적은 정상). 공시까지 원하면 GitHub에서 그 줄에 `dartCorpCode` 를 추가하세요 → [SETUP 4-1](SETUP.md).
 - **텔레그램 명령(`/add`·`/remove`)의 영속화**는 루틴이 `watchlist.json` 을 **레포에 커밋**하는 방식입니다(ROUTINE.md 0단계). 클라우드 세션은 보통 현재 브랜치로 push가 되지만, 막히면 변경이 다음 실행에서 재시도됩니다. **GitHub 직접 편집(B안)은 이 영향 없이 항상 확실**합니다.
 
 ---

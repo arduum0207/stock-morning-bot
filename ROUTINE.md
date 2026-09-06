@@ -19,10 +19,17 @@ npm run commands
   - **로컬 모드**: working folder가 디스크에 그대로 남으므로 `npm run commands` 가 파일을 저장한 것으로 **영속화 끝.** 커밋 불필요.
   - **클라우드 모드**: 매 실행 새 clone이라 휘발 → **레포에 커밋·푸시해야** 다음 실행에 유지된다:
     ```bash
-    git add watchlist.json && git commit -m "chore: watchlist 업데이트 (telegram)" && git push
+    git add watchlist.json && git commit -m "chore: watchlist 업데이트 (telegram)"
+    git pull --rebase && git push
     ```
     (push가 막히면 그 사실만 텔레그램으로 1줄 알리고 진행 — 변경은 다음 실행에서 재시도.)
+    `git pull --rebase` 는 필수다: `.github/workflows/telegram-commands.yml` 를 켰다면
+    Actions 가 10분마다 같은 파일을 커밋하므로, 그냥 push 하면 거절되거나 남의 변경을 덮는다.
 - `NOCHANGE` 면 다음 단계로.
+
+> `.github/workflows/telegram-commands.yml` 를 켜 뒀다면 명령은 이미 10분마다 처리되고 있다.
+> 그래도 이 단계는 그대로 돌린다 — 마지막 10분 안에 온 명령을 줍고, Actions 를 안 켠 사람도 동작해야 하니까.
+> 대개 `NOCHANGE` 로 빠르게 끝난다.
 
 > getUpdates가 네트워크 오류로 실패해도(드묾) 치명적이지 않다 — 그 회차 명령만 다음 실행으로 미뤄질 뿐. 수집·발송은 계속 진행한다.
 
