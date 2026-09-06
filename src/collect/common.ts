@@ -109,6 +109,15 @@ export async function fetchText(
   return await res.text();
 }
 
+/** fetch + 타임아웃 + 재시도 + 원시 바이트 (ZIP 등 바이너리용). */
+export async function fetchBuffer(
+  url: string,
+  init?: RequestInit & { timeoutMs?: number }
+): Promise<Buffer> {
+  const res = await fetchWithRetry(url, init);
+  return Buffer.from(await res.arrayBuffer());
+}
+
 /** XML 엔티티·CDATA 를 벗겨 순수 텍스트로. (RSS 파싱용) */
 export function decodeXml(s: string): string {
   return s

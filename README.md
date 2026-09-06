@@ -136,9 +136,9 @@ working folder의 `watchlist.json` 을 메모장/VSCode로 열어 고치고 저�
 
 **필드 설명 (공통)**
 - `ticker` / `name` / `market`(`"KR"` 또는 `"US"`) — 필수.
-- `dartCorpCode`(KR, 선택): 있으면 그 종목 **공시(DART)** 도 수집. 없으면 뉴스·실적만. → [DART 고유번호 찾는 법](https://opendart.fss.or.kr/disclosureinfo/fnltt/dwld/main.do). (삼성전자 `00126380`, SK하이닉스 `00164779`)
-- US 종목은 ticker만 넣으면 SEC 공시용 CIK가 자동 해석됩니다.
-- ⚠️ 텔레그램 `/add`로 넣은 KR 종목은 `dartCorpCode` 가 자동으로 안 들어갑니다(공시 누락, 뉴스·실적은 정상). 공시까지 원하면 (B)/(C)로 그 줄에 직접 추가.
+- `dartCorpCode`(KR, 선택): DART 공시 조회용 고유번호. **안 적어도 됩니다** — `DART_API_KEY` 가 있으면 수집할 때 종목코드로 자동 해석해요. 적어두면 그 값을 그대로 씁니다. → [고유번호 직접 찾기](https://opendart.fss.or.kr/disclosureinfo/fnltt/dwld/main.do) (삼성전자 `00126380`, SK하이닉스 `00164779`)
+- US 종목도 ticker만 넣으면 SEC 공시용 CIK가 자동 해석됩니다.
+- 즉 **`ticker`·`name`·`market` 세 개만 있으면 뉴스·공시·실적이 다 붙습니다.** 텔레그램 `/add` 로 넣은 종목도 마찬가지.
 
 ### 4단계 — Cloud Environment 설정 (가장 중요)
 
@@ -211,7 +211,6 @@ npm run send out/collected.json "테스트"   # 텔레그램 도착 확인(아�
 - **요금**: 예약 루틴은 별도 VM 과금 없이 **내 Claude 구독의 사용량 한도**를 같이 씁니다. 하루 1회 아침 실행은 부담 적습니다.
 - **자격**: Claude Code on the web/예약 루틴은 Pro/Max/Team 플랜 대상(리서치 프리뷰). 플랜에 따라 안 보일 수 있습니다.
 - **종목 바꾸기**: 언제든 포크의 `watchlist.json` 만 수정·커밋하면 다음 실행부터 반영됩니다.
-- **텔레그램 `/add` 로 넣은 KR 종목은 공시가 빠집니다**: 자동완성은 종목코드만 채우고 `dartCorpCode` 는 못 채웁니다(뉴스·실적은 정상). 공시까지 원하면 GitHub에서 그 줄에 `dartCorpCode` 를 추가하세요 → [SETUP 4-1](SETUP.md).
 - **텔레그램 명령(`/add`·`/remove`)의 영속화**는 루틴이 `watchlist.json` 을 **레포에 커밋**하는 방식입니다(ROUTINE.md 0단계). 클라우드 세션은 보통 현재 브랜치로 push가 되지만, 막히면 변경이 다음 실행에서 재시도됩니다. **GitHub 직접 편집(B안)은 이 영향 없이 항상 확실**합니다.
 
 ---

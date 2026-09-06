@@ -1,7 +1,7 @@
 /**
  * 수집 오케스트레이터.
  *   1. watchlist.json 로드
- *   2. US 종목 CIK 자동 해석
+ *   2. 공시용 식별자 자동 해석 (US: CIK, KR: DART 고유번호)
  *   3. 수집기 병렬 실행 (서로 독립, 일부 실패 허용)
  *   4. 병합·중복제거 후 out/collected.json 저장
  *
@@ -15,6 +15,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { loadWatchlist } from '../config';
 import { resolveCik } from './cik';
+import { resolveCorpCode } from './corp-code';
 import type { Collected, Collector, MarketNewsItem } from '../types';
 import dart from './dart';
 import sec from './sec';
@@ -54,8 +55,9 @@ async function main() {
     return;
   }
 
-  // US 종목 CIK 자동 해석 (SEC 공시용)
-  await resolveCik(tickers);
+  // 공시 조회용 식별자 자동 해석 — watchlist 에 손으로 안 적어도 공시가 수집되게.
+  // (US: ticker→CIK, KR: 종목코드→DART 고유번호). 서로 독립이라 병렬.
+  await Promise.all([resolveCik(tickers), resolveCorpCode(tickers)]);
 
   const collectors: Record<string, Collector> = {
     dart,
