@@ -59,7 +59,8 @@ Claude Code의 **예약 작업**으로 돌아갑니다. 비용은 **각자 자�
 3. **종목 편집**: `watchlist.json` (아래 [3단계](#3단계--종목-리스트-편집) 참고)
 4. **예약 작업 생성**: Claude Code Desktop → **Routines → New routine → `Local`** 선택
    - Instructions: `ROUTINE.md를 읽고 그대로 수행해.`
-   - **Working folder**: 위 폴더 / Model: Sonnet / Schedule: **Daily 07:30** / Permission: 자동 실행(묻지 않음)
+   - **Working folder**: 위 폴더 / Model: Sonnet / Schedule: **평일(월~금) 07:30** / Permission: 자동 실행(묻지 않음)
+   - 주말 스케줄을 못 끄더라도 괜찮습니다 — 루틴 첫 단계의 `npm run gate` 가 KST 토·일이면 아무것도 안 하고 끝냅니다.
 5. **첫 실행**: `Run now` → 뜨는 권한 프롬프트마다 **"always allow"** → 텔레그램 도착 확인
 6. 그 시각 PC 깨어 있게: Settings → Desktop app → **Keep computer awake**
 
@@ -182,10 +183,14 @@ Claude Code(터미널 또는 웹)에서:
 ```
 - 대상 레포: **내 포크**
 - 환경: 4단계에서 만든 환경
-- 시각: 매일 아침 (예: 평일 07:30)
+- 시각: **평일 아침** (예: 07:00 KST → cron 으로 넣는다면 `0 22 * * 0-4` **UTC** = 월~금 07:00 KST)
 - 프롬프트: **`ROUTINE.md 를 읽고 그대로 수행해.`**
 
-끝! 다음 날 아침부터 텔레그램으로 브리핑이 옵니다.
+끝! 다음 평일 아침부터 텔레그램으로 브리핑이 옵니다.
+
+> **주말(KST 토·일)엔 안 돌립니다.** 증시 휴장이라 새 재료가 없어요.
+> 스케줄을 평일로 잡는 게 1차, 루틴 첫 단계의 `npm run gate`(마지막 줄 `RUN`/`SKIP`)가 2차 안전장치입니다.
+> 주말에도 한 번 돌려보고 싶으면 `FORCE_RUN=1 npm run gate`.
 
 ---
 

@@ -4,6 +4,7 @@
 Claude Code 의 **예약 루틴(클라우드)** 으로 돌아가며, 비용은 각자 **구독 사용량**에서 차감된다(종량 API 아님).
 
 ## 동작 한눈에
+0. `npm run gate` → KST 주말(토·일)이면 `SKIP` — 그날은 아무것도 안 한다
 1. `npm run collect` → 수집기들이 watchlist.json 종목의 데이터를 모아 `out/collected.json` 저장 (LLM 미사용)
 2. **예약 에이전트(=너, 구독)** 가 `out/collected.json` 을 읽어 **시장 개요(맨 앞) + 종목별**로 요약·정렬하고 자체완결형 HTML 생성
 3. `npm run send out/brief-<날짜>.html "<캡션>"` → 텔레그램 문서 첨부 전송
@@ -11,6 +12,7 @@ Claude Code 의 **예약 루틴(클라우드)** 으로 돌아가며, 비용은 �
 매일 따를 구체 절차는 **ROUTINE.md** 에 있다.
 
 ## Commands
+- `npm run gate` — 오늘 돌릴 날인지 판정 (KST 토·일이면 마지막 줄 SKIP, 평일이면 RUN)
 - `npm run commands` — 텔레그램 `/add`·`/remove`·`/list` 수거 → watchlist.json 갱신 (마지막 줄 CHANGED/NOCHANGE)
 - `npm run collect` — 데이터 수집 → `out/collected.json`
 - `npm run send <html> [caption]` — HTML을 텔레그램으로 전송
@@ -26,6 +28,7 @@ Claude Code 의 **예약 루틴(클라우드)** 으로 돌아가며, 비용은 �
 ```
 src/
   types.ts            공통 타입
+  gate.ts             주말(KST) 실행 게이트 — RUN/SKIP
   config.ts           watchlist.json 로드·검증
   collect/
     common.ts         fetch 유틸

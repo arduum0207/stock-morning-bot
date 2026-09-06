@@ -5,6 +5,7 @@
   "type": "module",
   "description": "보유/관심 종목의 뉴스·공시를 매일 아침 텔레그램으로 보내주는 봇 (Claude Code 예약 루틴 기반)",
   "scripts": {
+    "gate": "tsx src/gate.ts",
     "commands": "NODE_USE_ENV_PROXY=1 tsx src/commands.ts",
     "collect": "NODE_USE_ENV_PROXY=1 tsx src/collect/run.ts",
     "send-text": "NODE_USE_ENV_PROXY=1 tsx src/send-text.ts",
