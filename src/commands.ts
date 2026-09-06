@@ -19,12 +19,32 @@ import type { WatchTicker, Watchlist } from './types';
 
 const MY_CHAT = process.env.TELEGRAM_CHAT_ID;
 
+/**
+ * 인자 없이 /add·/remove 만 탭했을 때 되묻는 문구.
+ * ForceReply 로 보내므로 유저 입력창이 자동으로 이 메시지의 답장 모드가 된다.
+ * 답장으로 되돌아온 원문을 여기 문구와 대조해 "무슨 명령의 인자인지" 되찾는다
+ * (→ .bot-state.json 이 없어도 동작. 클라우드는 매 실행 새 clone 이라 상태가 휘발한다).
+ */
+const ASK_TEXT: Record<'add' | 'remove', string> = {
+  add: '➕ 추가할 종목명이나 티커를 이 메시지에 답장으로 보내줘 (예: 삼성전자, NVDA)',
+  remove: '➖ 삭제할 종목명이나 티커를 이 메시지에 답장으로 보내줘',
+};
+
+/** 답장 대상 원문이 우리 질문이면 어느 명령이었는지 돌려준다. */
+function replyMode(replyToText: string | null): PendingMode {
+  if (!replyToText) return null;
+  const t = replyToText.trim();
+  if (t.startsWith(ASK_TEXT.add)) return 'add';
+  if (t.startsWith(ASK_TEXT.remove)) return 'remove';
+  return null;
+}
+
 const HELP_TEXT =
   '🤖 <b>종목 브리핑 봇</b>\n' +
   '/list — 현재 관심종목\n' +
   '/add &lt;종목명|티커&gt; — 추가 (예: /add 삼성전자)\n' +
   '/remove &lt;종목명|티커&gt; — 삭제\n' +
-  '메뉴의 /add·/remove는 탭한 뒤 종목명을 한 번 더 보내면 돼요.\n' +
+  '메뉴에서 /add·/remove를 탭하면 봇이 되물어요. 그 메시지에 종목명만 답장하면 돼요.\n' +
   '명령은 다음 아침 실행 때 반영돼요.';
 
 interface ParsedCmd {
@@ -98,17 +118,20 @@ async function main() {
   // 메뉴에서 인자 없이 /add 만 탭한 경우, 다음에 온 일반 메시지를 그 인자로 쓴다.
   // 이전 폴링에서 넘어온 대기상태로 시작 (배치가 끊겨도 이어지도록).
   let pending: PendingMode = await loadPending();
-  let interactions = 0; // 실제로 처리한 명령/입력 수 (회신 여부 판단)
+  let interactions = 0; // 실제로 처리한 명령/입력 수 (로그용)
+  let listRequested = false; // /list 는 결과 줄이 없어도 목록을 회신해야 한다
 
   for (const msg of mine) {
     const parsed = parseCmd(msg.text);
 
-    // 슬래시 명령이 아닌 일반 텍스트 → 대기 중인 명령의 인자로 소비
+    // 슬래시 명령이 아닌 일반 텍스트 → 대기 중인 명령의 인자로 소비.
+    // 우리 질문에 대한 답장이면 그 질문이 어느 명령이었는지가 확실하다(대기상태보다 우선).
     if (!parsed) {
       const arg = msg.text.trim();
-      if (pending && arg) {
+      const mode = replyMode(msg.replyToText) ?? pending;
+      if (mode && arg) {
         interactions++;
-        if (pending === 'add') await doAdd(wl, arg, lines);
+        if (mode === 'add') await doAdd(wl, arg, lines);
         else await doRemove(wl, arg, lines);
         pending = null;
       }
@@ -118,6 +141,7 @@ async function main() {
     const { cmd, arg } = parsed;
     if (cmd === 'list') {
       interactions++; // 최종 목록은 아래에서 항상 출력
+      listRequested = true;
       pending = null;
       continue;
     }
@@ -136,13 +160,9 @@ async function main() {
       else await doRemove(wl, arg, lines);
       pending = null;
     } else {
-      // 메뉴 탭으로 인자 없이 온 케이스 → 다음 메시지를 기다린다
+      // 메뉴 탭으로 인자 없이 온 케이스 → 다음 메시지를 기다린다.
+      // 되묻는 질문은 배치를 다 훑은 뒤(= 인자가 끝내 안 온 게 확정되면) ForceReply 로 보낸다.
       pending = cmd;
-      lines.push(
-        cmd === 'add'
-          ? '➕ 추가할 종목명이나 티커를 메시지로 보내줘 (예: 삼성전자, NVDA)'
-          : '➖ 삭제할 종목명이나 티커를 메시지로 보내줘'
-      );
     }
   }
 
@@ -156,11 +176,21 @@ async function main() {
   const maxId = Math.max(...updates.map((u) => u.updateId));
   if (Number.isFinite(maxId)) await confirmUpdates(maxId);
 
-  // 회신 (명령/입력이 하나라도 있었을 때만)
-  if (interactions > 0) {
+  // 회신 — 할 말(결과 줄)이 있거나 /list 를 받았을 때만.
+  // 인자 없는 /add 만 온 경우엔 목록을 되풀이하지 않고 아래 ForceReply 질문만 보낸다.
+  if (lines.length > 0 || listRequested) {
     const listStr = wl.tickers.map((t) => `${t.name}(${t.ticker})`).join(', ') || '(없음)';
     const head = lines.length ? lines.join('\n') + '\n\n' : '';
     await sendMessage(`${head}📋 현재 관심종목 ${wl.tickers.length}개: ${listStr}`);
+  }
+
+  // 인자를 못 받은 /add·/remove 가 남았으면 마지막에 되묻는다.
+  // ForceReply 는 마지막 메시지여야 입력창이 답장 모드로 열린다 → 목록 회신 뒤에 보낸다.
+  if (pending) {
+    await sendMessage(ASK_TEXT[pending], {
+      forceReply: true,
+      placeholder: pending === 'add' ? '추가할 종목명 또는 티커' : '삭제할 종목명 또는 티커',
+    });
   }
 
   console.log(`· 입력 ${interactions}건 처리 (수신 ${updates.length}, 대기=${pending ?? '없음'})`);

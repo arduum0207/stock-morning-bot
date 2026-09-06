@@ -71,8 +71,18 @@ export async function sendDocument(filePath: string, caption?: string): Promise<
   await ensureOk(res, 'sendDocument');
 }
 
-/** 짧은 HTML 텍스트 메시지 전송 (특이사항 없음 알림 등). */
-export async function sendMessage(html: string): Promise<void> {
+export interface SendMessageOptions {
+  /**
+   * ForceReply — 이 메시지를 보내면 유저의 입력창이 자동으로 "이 메시지에 답장" 모드가 된다.
+   * 메뉴에서 인자 없이 /add 만 탭한 경우, 종목명만 치면 그 답장이 명령의 인자로 묶인다.
+   */
+  forceReply?: boolean;
+  /** ForceReply 입력창에 흐리게 뜨는 안내문 (텔레그램 제한 64자). */
+  placeholder?: string;
+}
+
+/** 짧은 HTML 텍스트 메시지 전송 (특이사항 없음 알림, 명령 회신 등). */
+export async function sendMessage(html: string, opts: SendMessageOptions = {}): Promise<void> {
   const { token, chatId } = creds();
   const res = await fetchRetry(`https://api.telegram.org/bot${token}/sendMessage`, () => ({
     method: 'POST',
@@ -82,6 +92,16 @@ export async function sendMessage(html: string): Promise<void> {
       text: html,
       parse_mode: 'HTML',
       disable_web_page_preview: true,
+      ...(opts.forceReply
+        ? {
+            reply_markup: {
+              force_reply: true,
+              ...(opts.placeholder
+                ? { input_field_placeholder: opts.placeholder.slice(0, 64) }
+                : {}),
+            },
+          }
+        : {}),
     }),
   }));
   await ensureOk(res, 'sendMessage');
@@ -95,6 +115,8 @@ interface TgChat {
 interface TgMsg {
   text?: string;
   chat?: TgChat;
+  /** 유저가 어떤 메시지에 답장했는지. ForceReply 로 물어본 질문을 되찾는 데 쓴다. */
+  reply_to_message?: TgMsg;
 }
 interface TgUpdate {
   update_id: number;
@@ -106,6 +128,8 @@ export interface IncomingMessage {
   updateId: number;
   chatId: string;
   text: string;
+  /** 답장이라면, 답장 대상 메시지의 본문. 아니면 null. */
+  replyToText: string | null;
 }
 
 /**
@@ -126,7 +150,12 @@ export async function getUpdates(): Promise<IncomingMessage[]> {
     const msg = u.message ?? u.channel_post;
     const text = msg?.text;
     if (typeof u.update_id !== 'number' || !text) continue;
-    out.push({ updateId: u.update_id, chatId: msg?.chat?.id != null ? String(msg.chat.id) : '', text });
+    out.push({
+      updateId: u.update_id,
+      chatId: msg?.chat?.id != null ? String(msg.chat.id) : '',
+      text,
+      replyToText: msg?.reply_to_message?.text ?? null,
+    });
   }
   return out;
 }
