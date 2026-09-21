@@ -30,6 +30,18 @@ export function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * 실적 서프라이즈 %(컨센 대비). 소수 첫째 자리까지.
+ *
+ * 컨센이 0 이하(적자 예상)면 null 을 준다. 적자 기업은 퍼센트가 -941% 같은 값으로 튀어서
+ * "941% 미스" 처럼 읽히는데, 실제 의미는 "적자폭이 10배" 다 — 숫자가 거짓말을 하느니
+ * 아예 주지 않고 EPS 절대값 차이로 말하게 한다. (보유 종목 MVIS·INVZ·AEVA 가 여기 해당)
+ */
+export function surprisePct(actual: number | null, estimated: number | null): number | null {
+  if (actual === null || estimated === null || estimated <= 0) return null;
+  return Math.round(((actual - estimated) / estimated) * 1000) / 10;
+}
+
 const FETCH_TRIES = 2;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

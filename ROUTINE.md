@@ -61,7 +61,12 @@ npm run collect
 `out/collected.json` 구조:
 - `news[]`   : `{ ticker, market, source, title, url, publishedAt, summary }`
 - `filings[]`: `{ ticker, market, source, formType, title, url, filedAt }`
-- `earnings[]`: `{ ticker, market, eventDate, eps/revenue Estimated/Actual }`
+- `earnings[]`: `{ ticker, market, eventDate, eps/revenue Estimated/Actual, surprisePercent }`
+  `epsActual` 이 차 있으면 **이미 발표된 결과**, 비어 있으면 **앞으로의 일정**이다.
+  `surprisePercent` 는 컨센 대비 서프라이즈 %. **적자 예상 종목(MVIS·INVZ·AEVA·NBIS 등)은 null** 이다 —
+  퍼센트가 -900% 처럼 튀어서 거짓말이 되기 때문. 그땐 EPS 절대값 차이로 말한다.
+  ⚠️ **적자 종목은 EPS 가 덜 마이너스일수록 좋은 것**이다. 부호에 속지 마라 —
+  `epsActual:-0.12 / epsEstimated:-0.67` 은 "적자폭을 컨센보다 크게 줄였다(상회)" 지 미스가 아니다.
 - `market`   : **종목과 무관한 시장 전체 재료** (브리핑 맨 앞 섹션용)
   - `market.news[]`         : `{ scope, source, title, url, publishedAt, summary, keyword }`
     `scope` = `macro`(금리·물가·환율) / `policy`(정책·규제·정치) / `industry`(업황) / `global`(그 외)
@@ -76,8 +81,11 @@ npm run collect
     **날짜·시각은 이미 KST 로 변환돼 있다** — 다시 환산하지 마라.
     어제~향후 3영업일. 주요국만, 국채 입찰류 노이즈는 이미 걸러져 있다.
     **`importance`(high/medium/low) 순으로 정렬돼 있다** — 위에서부터 집으면 된다.
-  - `market.majorEarnings[]` : `{ symbol, name, eventDate, when, marketCap, epsEstimated }`
-    향후 7일 이내 발표하는 시총 1,000억 달러 이상 대형주 (보유 종목 아니어도 포함)
+  - `market.majorEarnings[]` : `{ symbol, name, eventDate, when, marketCap, reported, epsEstimated, epsActual, surprisePercent, epsLastYear }`
+    시총 1,000억 달러 이상 대형주 (보유 종목 아니어도 포함). **두 종류가 함께 들어있다:**
+    - `reported:true` — **직전 2영업일에 이미 발표된 결과.** `epsActual` + `surprisePercent` 가 있다.
+      배열 **앞쪽**에 온다.
+    - `reported:false` — 향후 7일 예정. `epsEstimated` + `epsLastYear`(작년 같은 분기)가 있다.
 
 ### 3. 큐레이션 (네가 판단)
 
@@ -102,8 +110,31 @@ npm run collect
    - `time` 이 null 이면 시각 미공개(하루 종일) 이벤트다 — 날짜만 쓴다.
    - 같은 지표의 MoM/YoY 가 이름이 같은 채로 두 줄 오는 경우가 있다(예: PCE Price Index).
      한 항목으로 합쳐서 "전월비 +0.2% / 전년비 +3.3%" 처럼 쓴다.
-4. **주요 기업 실적 일정** — `market.majorEarnings` 에서 이름 있는 곳 위주로 5개 내외.
+4. **주요 기업 실적** — `market.majorEarnings` 에서 이름 있는 곳 위주로 5개 내외.
+   **"나온 결과" 를 먼저 쓰고, 그다음 "앞으로의 일정" 을 쓴다.** 둘은 성격이 다르다.
+
+   **(a) 이미 발표된 것 (`reported:true`) — 숫자만 던지지 마라.**
+   실적은 발표 전엔 일정이지만 발표 후엔 **재료**다. 한 건마다 이렇게 쓴다:
+   - 결과 한 줄: `EPS $6.62 vs 컨센 $6.48 (+2.2% 상회)`
+   - **그래서 무슨 의미인지 한 줄.** 이게 핵심이다. 다음 중 해당하는 걸 짚는다:
+     - 업황 신호 — 그 회사 숫자가 섹터 전체에 대해 말해 주는 것
+       (예: "AI 서버 수요가 여전히 공급을 앞선다는 확인")
+     - **보유 종목으로의 연결** — 같은 섹터·고객·공급망이면 반드시 종목명을 적는다
+       (예: "→ 삼성전자·SK하이닉스 HBM 수요에 긍정")
+     - 시장 전체 온도 — 지수를 움직일 만한 건이면 그렇다고 쓴다
+   - 가이던스·주가 반응은 `market.news` / 종목 `news[]` 에 보통 같이 들어온다.
+     **먼저 거기서 교차 확인**하고, 정말 중요한 1~2건인데 재료가 없으면 웹서치 1회까지 허용.
+     끝내 모르면 모른다고 두지, 지어내지 마라.
+   - `surprisePercent` 가 null 인데 `epsActual` 이 있으면 적자 기업이다. % 대신
+     "EPS -$0.31 (컨센 -$0.24) — 적자폭 확대" 처럼 절대값 + **방향**으로 쓴다.
+     **덜 마이너스면 상회(긍정)** 다 (-$0.12 vs 컨센 -$0.67 → "적자폭 크게 축소, 컨센 상회").
+   - `epsActual` 까지 null 이면 아직 집계 전 — "발표됨, 수치 미집계" 로 넘기거나 그냥 뺀다.
+
+   **(b) 앞으로의 일정 (`reported:false`)** — 날짜·시점(`when`)·EPS 컨센.
+   - `epsLastYear` 가 있으면 **전년비 기대치**를 함께 쓴다 (예: "컨센 $6.48 · 작년 $5.87 → +10% 기대").
+     이게 "그냥 숫자"를 "시장이 뭘 기대하고 있나"로 바꿔 준다.
    - 오늘/내일 발표하는 대형주(특히 엔비디아·브로드컴 등 보유 종목과 같은 섹터)는 강조한다.
+
    - 이미 `earnings[]` 에 있는 보유 종목 실적은 여기 중복해 넣지 말고 종목 섹션에서 다룬다.
 
 > 재료가 얇을 때(예: `market.news` 가 전부 잡음)는 **웹서치 1~2회로 보강**해도 된다
@@ -123,8 +154,13 @@ npm run collect
 - 매칭되는 기사가 있으면 `relevant` + 어떤 watchPoint와 관련되는지 한 줄 명시(예: "⚠️ 감시포인트: RPO 감소 여부 — 관련 기사").
 - `collected.json`에 watchPoints 관련 기사가 전혀 없으면, **그 종목에 한해서만** 가볍게 웹서치 1~2회로 보강 확인한다(예: `"{회사명} {watchPoint 핵심어} news"`). 찾은 게 있으면 카드로 추가, 없으면 굳이 "특이사항 없음"을 매번 쓰지 않아도 된다 — 매칭 안 된 watchPoint는 조용히 넘어간다.
 - watchPoints가 없는 종목(005930·000660·NBIS·MVIS·INVZ·AEVA)은 기존 방식 그대로, 보강 검색 없이 진행한다.
-- 실적(earnings) 표기:
-  - US: `eventDate`(발표 예정일) + EPS/매출 컨센 — 임박한 것만.
+- 실적(earnings) 표기 — **`epsActual` 유무로 갈린다:**
+  - **US, 이미 발표됨(`epsActual` 있음)**: 결과 + 의미를 3-0 (a) 와 같은 기준으로 쓴다.
+    보유 종목이니 한 걸음 더 들어간다 — **왜 이 숫자가 내 포지션에 중요한지**,
+    그리고 `watchPoints` 가 있는 종목이면 **그 항목이 실적으로 확인됐는지/깨졌는지**를 명시한다
+    (예: "⚠️ 감시포인트: RPO 전분기 대비 감소 — 이번 실적에서 확인됨").
+    EPS만으론 얕으니 그 종목 `news[]`·`filings[]` 에서 가이던스·세그먼트 매출을 찾아 붙인다.
+  - **US, 예정(`epsActual` 없음)**: `eventDate`(발표 예정일) + EPS/매출 컨센 — 임박한 것만.
   - KR: `eventDate`는 null이다. `period`(예 "2026.06") + 컨센서스(매출·영업이익·EPS, **단위 `unit`="억원"** → 조 단위로 환산해 보여주면 가독성↑) + `targetPrice`(목표주가, 원).
 
 ### 4. HTML 생성

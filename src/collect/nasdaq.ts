@@ -7,6 +7,9 @@
  *     → 그날 발표 예정인 전 종목. 관심종목만 걸러 "다음 실적일 + EPS 컨센" 을 얻는다.
  *       같은 응답에서 시총 상위 대형주도 함께 추려(market.majorEarnings) 브리핑
  *       맨 앞 "오늘의 시장" 섹션에 쓴다 — 추가 요청 없이 재활용.
+ *       **지난 날짜도 함께 훑는다**: 같은 엔드포인트가 지난 날짜엔 실제 EPS(eps)를 채워 주는데,
+ *       미래만 보면 발표가 끝난 순간 목록에서 사라져 "그래서 어떻게 나왔는데?" 를 못 쓴다.
+ *       (예정 행엔 lastYearEPS 가 붙어 와 전년비 기대치를, 발표된 행엔 실제 EPS 가 온다.)
  *   GET /api/company/{symbol}/earnings-surprise
  *     → 최근 보고된 분기의 실제 EPS vs 컨센서스.
  *
@@ -19,7 +22,7 @@ import type {
   CollectResult,
   Collector,
 } from '../types';
-import { fetchJson, daysAgo, isoDate, log } from './common';
+import { fetchJson, daysAgo, isoDate, log, surprisePct } from './common';
 
 /** 앞으로 며칠치 실적 캘린더를 훑을지. ROUTINE 은 "임박한 것만" 쓰므로 3주면 충분. */
 const CALENDAR_DAYS = 21;
@@ -27,10 +30,17 @@ const CALENDAR_DAYS = 21;
 const PAST_DAYS = 100;
 /** 시장 섹션의 "주요 기업 실적": 앞으로 며칠치까지 보여줄지. */
 const MAJOR_DAYS = 7;
+/**
+ * 이미 발표된 결과를 며칠치(영업일) 거슬러 볼지.
+ * 주말 게이트 때문에 월요일 아침엔 금·목요일 발표분이 여기 걸린다.
+ */
+const MAJOR_PAST_DAYS = 2;
 /** 대형주 기준 시총(USD). 이보다 작으면 시장 전체 이슈로 보기 어렵다. */
 const MAJOR_MIN_CAP = 100_000_000_000;
-/** 시장 섹션에 담을 최대 건수 (시총 상위부터). */
+/** 시장 섹션에 담을 최대 건수 (시총 상위부터) — 예정 일정. */
 const MAJOR_LIMIT = 15;
+/** 같은 기준, 이미 발표된 결과. 예정 건과 자리를 다투지 않게 따로 잡는다. */
+const MAJOR_REPORTED_LIMIT = 6;
 
 const UA = {
   'User-Agent':
@@ -47,6 +57,10 @@ interface CalendarResp {
       marketCap?: string;
       epsForecast?: string;
       fiscalQuarterEnding?: string;
+      /** 발표가 끝난 날짜에만 채워져 온다. 예정 행엔 키 자체가 없다. */
+      eps?: string;
+      /** 예정 행에만 온다 — 작년 같은 분기 EPS. */
+      lastYearEPS?: string;
     }> | null;
   } | null;
 }
@@ -101,6 +115,18 @@ function upcomingWeekdays(n: number): string[] {
   return out;
 }
 
+/** 어제부터 거슬러 n영업일(주말 제외). 오래된 날짜가 앞에 오도록 돌려준다. */
+function pastWeekdays(n: number): string[] {
+  const out: string[] = [];
+  for (let i = 1; i <= n + 4 && out.length < n; i++) {
+    const d = new Date(Date.now() - i * 86_400_000);
+    const dow = d.getUTCDay();
+    if (dow === 0 || dow === 6) continue;
+    out.push(isoDate(d));
+  }
+  return out.reverse();
+}
+
 const nasdaq: Collector = async (tickers: WatchTicker[]): Promise<CollectResult> => {
   const targets = tickers.filter((t) => t.market === 'US');
   const want = new Map(targets.map((t) => [t.ticker.toUpperCase(), t.ticker]));
@@ -111,15 +137,22 @@ const nasdaq: Collector = async (tickers: WatchTicker[]): Promise<CollectResult>
   const earnings: EarningsEvent[] = [];
   const majorEarnings: MajorEarnings[] = [];
   const majorUntil = isoDate(new Date(Date.now() + MAJOR_DAYS * 86_400_000));
+  // KST 아침에 돌면 UTC 로는 아직 전날이라, upcomingWeekdays 의 첫날이 곧 "방금 장이 끝난 날" 이다.
+  // 그날 장마감 후 발표분은 이 시점에 이미 eps 가 채워져 온다 — 그래서 날짜가 아니라 eps 유무로 판정한다.
+  const today = isoDate(new Date());
 
-  // 1) 향후 실적 캘린더 — 날짜별로 훑어 관심종목만 추린다.
-  for (const date of upcomingWeekdays(calendarDays)) {
+  // 1) 실적 캘린더 — 지난 며칠(결과) + 향후(일정) 을 날짜별로 훑어 관심종목만 추린다.
+  for (const date of [...pastWeekdays(MAJOR_PAST_DAYS), ...upcomingWeekdays(calendarDays)]) {
     try {
       const data = await fetchJson<CalendarResp>(
         `https://api.nasdaq.com/api/calendar/earnings?date=${date}`,
         { headers: UA }
       );
       for (const row of data.data?.rows ?? []) {
+        const epsEstimated = money(row.epsForecast);
+        const epsActual = money(row.eps);
+        const reported = epsActual !== null || date < today;
+
         // 같은 응답에서 대형주도 추린다(시장 섹션용) — 관심종목 여부와 무관.
         const cap = money(row.marketCap);
         if (date <= majorUntil && row.symbol && cap !== null && cap >= MAJOR_MIN_CAP) {
@@ -129,7 +162,11 @@ const nasdaq: Collector = async (tickers: WatchTicker[]): Promise<CollectResult>
             eventDate: date,
             when: whenLabel(row.time),
             marketCap: cap,
-            epsEstimated: money(row.epsForecast),
+            epsEstimated,
+            reported,
+            epsActual,
+            surprisePercent: surprisePct(epsActual, epsEstimated),
+            epsLastYear: money(row.lastYearEPS),
           });
         }
         const ticker = want.get((row.symbol ?? '').toUpperCase());
@@ -139,8 +176,9 @@ const nasdaq: Collector = async (tickers: WatchTicker[]): Promise<CollectResult>
           market: 'US',
           eventDate: date,
           period: row.fiscalQuarterEnding ?? null,
-          epsEstimated: money(row.epsForecast),
-          epsActual: null,
+          epsEstimated,
+          epsActual,
+          surprisePercent: surprisePct(epsActual, epsEstimated),
           currency: 'USD',
         });
       }
@@ -161,13 +199,16 @@ const nasdaq: Collector = async (tickers: WatchTicker[]): Promise<CollectResult>
       if (!latest) continue;
       const reported = usDateToIso(latest.dateReported);
       if (!reported || reported < since) continue;
+      const epsEstimated = money(latest.consensusForecast);
+      const epsActual = money(latest.eps);
       earnings.push({
         ticker: t.ticker,
         market: 'US',
         eventDate: reported,
         period: latest.fiscalQtrEnd ?? null,
-        epsEstimated: money(latest.consensusForecast),
-        epsActual: money(latest.eps),
+        epsEstimated,
+        epsActual,
+        surprisePercent: surprisePct(epsActual, epsEstimated),
         currency: 'USD',
       });
     } catch (e) {
@@ -175,11 +216,17 @@ const nasdaq: Collector = async (tickers: WatchTicker[]): Promise<CollectResult>
     }
   }
 
-  // 시총 상위부터, 너무 길지 않게 자른다.
-  majorEarnings.sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
-  const major = majorEarnings.slice(0, MAJOR_LIMIT);
+  // 시총 상위부터, 너무 길지 않게 자른다. 발표된 결과와 예정 일정을 따로 자른 뒤
+  // "어젯밤 결과 → 앞으로의 일정" 순으로 붙인다 — 브리핑에 쓰는 순서 그대로.
+  const byCap = (a: MajorEarnings, b: MajorEarnings) => (b.marketCap ?? 0) - (a.marketCap ?? 0);
+  const done = majorEarnings.filter((e) => e.reported).sort(byCap).slice(0, MAJOR_REPORTED_LIMIT);
+  const upcoming = majorEarnings.filter((e) => !e.reported).sort(byCap).slice(0, MAJOR_LIMIT);
+  const major = [...done, ...upcoming];
 
-  log('nasdaq', `US 실적 ${earnings.length}건 · 대형주 실적일정 ${major.length}건 수집`);
+  log(
+    'nasdaq',
+    `US 실적 ${earnings.length}건 · 대형주 발표결과 ${done.length}건 / 예정 ${upcoming.length}건 수집`
+  );
   return { earnings, market: { majorEarnings: major } };
 };
 
