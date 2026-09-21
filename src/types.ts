@@ -53,6 +53,12 @@ export interface EarningsEvent {
   period?: string | null;
   epsEstimated?: number | null;
   epsActual?: number | null;
+  /**
+   * 컨센서스 대비 서프라이즈 %. `epsActual` 이 있을 때만 채워진다.
+   * 컨센이 0 이하(적자 예상)면 %가 -941% 같은 값으로 튀어 오해를 부르므로 null 이다 —
+   * 그 경우엔 EPS 절대값 차이로 말해야 한다.
+   */
+  surprisePercent?: number | null;
   revenueEstimated?: number | null;
   revenueActual?: number | null;
   // ── KR 전용(네이버 컨센서스). 있으면 채워짐 ──
@@ -121,7 +127,11 @@ export interface EconomicEvent {
   previous?: string | null;
 }
 
-/** 보유 종목이 아니어도 시장 전체에 영향을 주는 대형주 실적 일정. */
+/**
+ * 보유 종목이 아니어도 시장 전체에 영향을 주는 대형주 실적.
+ * **앞으로의 일정(reported=false)과 이미 나온 결과(reported=true)가 함께 들어있다.**
+ * 발표가 끝난 건을 목록에서 지워 버리면 "어제 그래서 어떻게 나왔는데?" 를 영영 말 못 한다.
+ */
 export interface MajorEarnings {
   symbol: string;
   name: string;
@@ -131,6 +141,14 @@ export interface MajorEarnings {
   /** 시가총액(USD). 정렬·필터용. */
   marketCap?: number | null;
   epsEstimated?: number | null;
+  /** true = 이미 발표된 결과, false = 앞으로의 일정. */
+  reported: boolean;
+  /** 실제 EPS. reported 여도 집계가 늦으면 null 일 수 있다. */
+  epsActual?: number | null;
+  /** 컨센 대비 서프라이즈 %. 적자 예상이면 null (EarningsEvent 와 같은 규칙). */
+  surprisePercent?: number | null;
+  /** 작년 같은 분기의 EPS. 전년비(YoY) 를 말할 때 쓴다. 예정 건에만 온다. */
+  epsLastYear?: number | null;
 }
 
 export interface MarketOverview {

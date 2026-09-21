@@ -4,7 +4,7 @@
  * 종목 수가 적어 종목별 호출이 무료 티어에 적합.
  */
 import type { WatchTicker, EarningsEvent, CollectResult, Collector } from '../types';
-import { fetchJson, daysAgo, isoDate, log, HttpError } from './common';
+import { fetchJson, daysAgo, isoDate, log, surprisePct, HttpError } from './common';
 
 interface FmpEarning {
   date: string;
@@ -37,12 +37,16 @@ const fmp: Collector = async (tickers: WatchTicker[]): Promise<CollectResult> =>
       const data = await fetchJson<FmpEarning[]>(url);
       for (const e of Array.isArray(data) ? data : []) {
         if (!e.date || e.date < since) continue;
+        // FMP 는 서프라이즈 %를 주지 않는다 — nasdaq 쪽과 같은 규칙으로 직접 계산한다.
+        const epsEstimated = e.epsEstimated ?? null;
+        const epsActual = e.epsActual ?? null;
         earnings.push({
           ticker: e.symbol || ticker,
           market: 'US',
           eventDate: e.date,
-          epsEstimated: e.epsEstimated ?? null,
-          epsActual: e.epsActual ?? null,
+          epsEstimated,
+          epsActual,
+          surprisePercent: surprisePct(epsActual, epsEstimated),
           revenueEstimated: e.revenueEstimated ?? null,
           revenueActual: e.revenueActual ?? null,
         });

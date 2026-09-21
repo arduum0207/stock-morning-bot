@@ -36,7 +36,7 @@ src/
     naver-news.ts     KR 뉴스 (네이버)
     sec.ts            US 공시 (SEC EDGAR)
     fmp.ts            US 실적 (FMP — 무료 티어는 일부 종목만)
-    nasdaq.ts         US 실적 (Nasdaq, 키 불필요 — FMP 공백 보완)
+    nasdaq.ts         US 실적 일정 + 발표된 결과 (Nasdaq, 키 불필요 — FMP 공백 보완)
     rss.ts            US 뉴스 (Yahoo RSS)
     market-news.ts    시장 전체 뉴스 (네이버 매크로 키워드 + Yahoo 시장 RSS)
     market-index.ts   지수·환율·금리·유가·금 (네이버 + FMP, 실시간)
