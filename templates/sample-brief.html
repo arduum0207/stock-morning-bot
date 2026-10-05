@@ -3,8 +3,8 @@
   예약 에이전트가 매일 생성할 HTML 의 "스타일 레퍼런스".
   - 100% 자체완결형: 외부 CSS/JS/폰트/이미지 금지 (오프라인에서도 열려야 함).
   - 모든 기사/공시 제목은 실제 원문 URL 로 링크 (target=_blank).
-  - 제목 옆 "링크 복사" 버튼은 맨 아래 <script> 가 a.title 마다 자동으로 붙인다.
-    → 카드에 버튼을 직접 쓰지 말고, 아래 .copy CSS 와 <script> 블록을 그대로 복사해 넣을 것.
+  - 제목 옆 "링크 복사" 버튼은 `npm run send` 가 보내기 직전에 a.title 마다 자동으로 넣는다.
+    → 버튼·관련 CSS/스크립트를 직접 쓰지 말 것. 제목 링크에 class="title" 만 지키면 된다.
   - 한국식 등락 색: 상승/긍정=빨강(#d23f31), 하락/부정=파랑(#1f6fd6), 중립=회색.
   ROUTINE.md 가 이 파일을 보고 같은 톤으로 생성하라고 지시한다.
 -->
@@ -58,12 +58,6 @@
   .tag.filing { background:#ece6fb; color:#6b46c1; }
   .card a.title { color:var(--ink); font-weight:600; font-size:15px; text-decoration:none; }
   .card a.title:hover { text-decoration:underline; }
-  /* 제목 옆 링크 복사 버튼 — 맨 아래 <script> 가 자동 삽입 */
-  .copy { display:inline-flex; align-items:center; vertical-align:2px; margin-left:6px;
-    padding:1px 7px; font-size:11px; line-height:1.5; color:var(--sub); background:#f0f2f5;
-    border:1px solid var(--line); border-radius:999px; cursor:pointer; font-family:inherit; }
-  .copy:hover { color:var(--ink); border-color:#cbd0d6; }
-  .copy.done { color:#15803d; background:#e7f6ec; border-color:#bfe5cb; }
   .card .summary { color:#374151; font-size:13.5px; margin:6px 0 0; }
   .card .meta { color:var(--sub); font-size:11.5px; margin-top:7px; }
   footer { color:var(--sub); font-size:11.5px; text-align:center; margin-top:30px;
@@ -169,41 +163,5 @@
     stock-morning-bot · 출처 링크는 각 기사·공시의 원문으로 연결됩니다.
   </footer>
 </div>
-<script>
-/* 제목(a.title) 옆에 "링크 복사" 버튼을 붙인다. 외부 의존 없음.
-   clipboard API → execCommand 폴백 → 그래도 안 되면 prompt 로 URL 을 띄워 직접 복사. */
-(function () {
-  function fallback(text) {
-    var ta = document.createElement('textarea');
-    ta.value = text; ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
-    document.body.removeChild(ta);
-    return ok;
-  }
-  function copy(text) {
-    if (navigator.clipboard && window.isSecureContext) {
-      return navigator.clipboard.writeText(text).then(function () { return true; },
-        function () { return fallback(text); });
-    }
-    return Promise.resolve(fallback(text));
-  }
-  document.querySelectorAll('a.title[href]').forEach(function (a) {
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'copy'; b.textContent = '🔗 복사';
-    b.title = '링크 복사'; b.setAttribute('aria-label', '링크 복사');
-    b.addEventListener('click', function (e) {
-      e.preventDefault(); e.stopPropagation();
-      copy(a.href).then(function (ok) {
-        if (!ok) { window.prompt('링크를 복사하세요', a.href); return; }
-        b.textContent = '✓ 복사됨'; b.classList.add('done');
-        setTimeout(function () { b.textContent = '🔗 복사'; b.classList.remove('done'); }, 1500);
-      });
-    });
-    a.insertAdjacentElement('afterend', b);
-  });
-})();
-</script>
 </body>
 </html>
