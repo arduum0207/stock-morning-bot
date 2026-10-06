@@ -79,6 +79,8 @@ export interface SendMessageOptions {
   forceReply?: boolean;
   /** ForceReply 입력창에 흐리게 뜨는 안내문 (텔레그램 제한 64자). */
   placeholder?: string;
+  /** 메시지 아래 인라인 버튼 (예: 탭하면 복사되는 copy_text 버튼). forceReply 와 같이 쓰지 않는다. */
+  inlineKeyboard?: unknown[][];
 }
 
 /** 짧은 HTML 텍스트 메시지 전송 (특이사항 없음 알림, 명령 회신 등). */
@@ -101,7 +103,9 @@ export async function sendMessage(html: string, opts: SendMessageOptions = {}): 
                 : {}),
             },
           }
-        : {}),
+        : opts.inlineKeyboard
+          ? { reply_markup: { inline_keyboard: opts.inlineKeyboard } }
+          : {}),
     }),
   }));
   await ensureOk(res, 'sendMessage');
