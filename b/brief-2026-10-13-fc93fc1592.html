@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 종목 브리핑</title>
+<style>
+  :root { --up:#d23f31; --down:#1f6fd6; --ink:#1a1a1a; --sub:#6b7280; --line:#e5e7eb; --bg:#f6f7f9; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;
+    line-height:1.55; }
+  .wrap { max-width:680px; margin:0 auto; padding:20px 16px 48px; }
+  header { padding:8px 4px 16px; border-bottom:2px solid var(--ink); margin-bottom:18px; }
+  header h1 { font-size:22px; margin:0 0 4px; letter-spacing:-0.3px; }
+  header .date { color:var(--sub); font-size:13px; }
+  .signal { background:#fff; border:1px solid var(--line); border-left:4px solid var(--ink);
+    border-radius:8px; padding:12px 14px; margin-bottom:22px; font-size:14px; }
+  .section-head { font-size:13px; font-weight:700; color:var(--sub); letter-spacing:0.4px;
+    margin:0 0 10px; padding-left:2px; }
+  .market { margin-bottom:28px; }
+  .strip { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .strip .q { flex:1 1 30%; min-width:100px; background:#fff; border:1px solid var(--line);
+    border-radius:8px; padding:8px 10px; }
+  .strip .q .k { font-size:11.5px; color:var(--sub); }
+  .strip .q .v { font-size:15px; font-weight:700; }
+  .strip .q .d { font-size:11.5px; }
+  .up { color:var(--up); } .down { color:var(--down); } .flat { color:var(--sub); }
+  .cal { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line);
+    border-radius:10px; overflow:hidden; font-size:12.5px; margin-bottom:10px; }
+  .cal th, .cal td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); }
+  .cal th { background:#f0f2f5; color:var(--sub); font-weight:600; font-size:11.5px; }
+  .cal tr:last-child td { border-bottom:none; }
+  .cal td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .cal td.why { color:#374151; font-size:12px; background:#fafbfc; padding:2px 10px 8px; }
+  .ticker-group { margin-bottom:26px; }
+  .ticker-head { display:flex; align-items:baseline; gap:8px; margin:0 0 10px; }
+  .ticker-head .name { font-size:17px; font-weight:700; }
+  .ticker-head .code { font-size:12px; color:var(--sub); }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px;
+    padding:13px 15px; margin-bottom:9px; }
+  .card.relevant { border-color:#f0c000; border-left:4px solid #f0c000; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:7px; }
+  .tag { font-size:11px; padding:2px 8px; border-radius:999px; background:#eef1f5; color:#4b5563; }
+  .tag.pos { background:#fde8e6; color:var(--up); }
+  .tag.neg { background:#e6effb; color:var(--down); }
+  .tag.filing { background:#ece6fb; color:#6b46c1; }
+  .card a.title { color:var(--ink); font-weight:600; font-size:15px; text-decoration:none; }
+  .card a.title:hover { text-decoration:underline; }
+  .card .summary { color:#374151; font-size:13.5px; margin:6px 0 0; }
+  .card .meta { color:var(--sub); font-size:11.5px; margin-top:7px; }
+  footer { color:var(--sub); font-size:11.5px; text-align:center; margin-top:30px;
+    padding-top:14px; border-top:1px solid var(--line); }
+</style>
+<style data-copylinks>
+  button.copy { display:inline-flex; align-items:center; vertical-align:2px; margin-left:6px;
+    padding:1px 7px; font-size:11px; line-height:1.5; font-weight:400; color:#6b7280; background:#f0f2f5;
+    border:1px solid #e5e7eb; border-radius:999px; cursor:pointer; font-family:inherit;
+    -webkit-tap-highlight-color:transparent; }
+  button.copy.done { color:#15803d; background:#e7f6ec; border-color:#bfe5cb; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>📈 오늘의 종목 브리핑</h1>
+    <div class="date">2026-10-13 (화) · 보유·관심 종목 10개</div>
+  </header>
+
+  <div class="signal">
+    <strong>오늘의 한 줄</strong> — 중국 CXMT發 '메모리 굴기' 공포로 코스피 -3.65%·코스닥 -4.83% 폭락, 삼성전자 역대급 잠정실적도 못 막았다. 사우디 공항 연쇄 공격에 유가 급등, 뉴욕은 반도체 약세·유가 상승에 혼조 마감. 오라클은 $664B 수주잔고에도 재무건전성 우려 지속, 로블록스는 구글·유니티 AI 게임제작 파트너십 공세에 노출.
+  </div>
+
+  <!-- ── 시장 개요 ── -->
+  <div class="market">
+    <div class="section-head">🌐 오늘의 시장</div>
+
+    <div class="strip">
+      <div class="q"><div class="k">코스피</div><div class="v">6,384.24</div><div class="d down">-241.69 (-3.65%)</div></div>
+      <div class="q"><div class="k">코스닥</div><div class="v">849.19</div><div class="d down">-43.08 (-4.83%)</div></div>
+      <div class="q"><div class="k">원/달러</div><div class="v">1,336원</div><div class="d down">-8 (-0.60%)</div></div>
+      <div class="q"><div class="k">미국채 10년</div><div class="v">5.242%</div><div class="d up">+0.009 (+0.17%)</div></div>
+      <div class="q"><div class="k">S&amp;P 500</div><div class="v">7,807.79</div><div class="d down">-3.75 (-0.05%)</div></div>
+      <div class="q"><div class="k">나스닥</div><div class="v">27,245.90</div><div class="d down">-120.27 (-0.44%)</div></div>
+      <div class="q"><div class="k">WTI</div><div class="v">$93.74</div><div class="d flat">보합</div></div>
+      <div class="q"><div class="k">브렌트유</div><div class="v">$106.14</div><div class="d up">+1.42 (+1.36%)</div></div>
+      <div class="q"><div class="k">국제 금</div><div class="v">$4,190.6</div><div class="d flat">보합</div></div>
+      <div class="q"><div class="k">VIX</div><div class="v">15.21</div><div class="d up">+0.37 (+2.49%)</div></div>
+      <div class="q"><div class="k">장단기 금리차(10Y-2Y)</div><div class="v">+0.44%p</div><div class="d down">-0.03%p (10/9 기준)</div></div>
+    </div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag">업황</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://www.topstarnews.net/news/articleView.html?idxno=16245159" target="_blank" rel="noopener">美증시 혼조, 中메모리 반격에 반도체주 '뚝'…나스닥 하락</a><button type="button" class="copy" data-url="https://www.topstarnews.net/news/articleView.html?idxno=16245159">🔗 복사</button>
+      <p class="summary">중국 CXMT의 차세대 D램 기술 진전이 범용 메모리 경쟁력 강화로 이어질 수 있다는 우려가 한미 양국 반도체주를 동시에 눌렀다. 코스피는 외국인 2조원 순매도 속에 6400선이 무너졌고, 뉴욕에서도 엔비디아·브로드컴·AMD 등이 2% 안팎 하락했다. <strong>→ 삼성전자·SK하이닉스 직격.</strong></p>
+      <div class="meta">topstarnews(네이버) · 10-12 22:04</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">global</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://news.google.com/rss/articles/CBMixgFBVV95cUxObGszbTdESk0xU0twcE1ZOHg4VFpzN2lzeWQ0ZDJseVpKczh6cE44eTNOb3ZDS3dnVnZJN3RCNE1wVDI0djVodU41LTN3WkVIemI0NWlucWpKY0tvU3JMeEM2YVN1OTBsdW5mZDVXeWhFcXdyQ1pGRjBVNTR6SmpBSXhzSXRObWtSTjlYcEJzOUxsX2Ezb28yZ1FrU083bzNpNmd2VlpjUkxnaE5PdEliNWpxeU5QNkp1V1JmcXlFdUJ1S01zcHc?oc=5" target="_blank" rel="noopener">사우디 리야드 공항 연쇄 공격, 항공편 잇따라 취소…유가 자극</a><button type="button" class="copy" data-url="https://news.google.com/rss/articles/CBMixgFBVV95cUxObGszbTdESk0xU0twcE1ZOHg4VFpzN2lzeWQ0ZDJseVpKczh6cE44eTNOb3ZDS3dnVnZJN3RCNE1wVDI0djVodU41LTN3WkVIemI0NWlucWpKY0tvU3JMeEM2YVN1OTBsdW5mZDVXeWhFcXdyQ1pGRjBVNTR6SmpBSXhzSXRObWtSTjlYcEJzOUxsX2Ezb28yZ1FrU083bzNpNmd2VlpjUkxnaE5PdEliNWpxeU5QNkp1V1JmcXlFdUJ1S01zcHc?oc=5">🔗 복사</button>
+      <p class="summary">리야드 공항이 두 차례 공격을 받아 이번 주 폐쇄되고 각국 항공사가 사우디행 운항을 취소했다. 걸프 지역 긴장이 고조되며 브렌트유가 하루 만에 1.4% 올랐다. 미국 FAA도 사우디 관련 안전 경보를 발령했다.</p>
+      <div class="meta">Reuters(Finnhub) · 10-12</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">매크로</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://www.newsis.com/view/NISX20261013_0003823016" target="_blank" rel="noopener">연준 인사들 "금리 조정 늦기보다 신속·소폭으로" — 지난달 깜짝 인상 이후 추가 조정 두고 신중론</a><button type="button" class="copy" data-url="https://www.newsis.com/view/NISX20261013_0003823016">🔗 복사</button>
+      <p class="summary">연준은 지난달 FOMC에서 이란전쟁·AI 수요發 물가압력에 대응해 기준금리를 0.25%p 올려 3.75~4.00%로 조정했다(3년 2개월 만의 인상). 해맥·클리블랜드 연은 총재 등은 "물가 2% 복귀엔 시간이 걸린다"며 추가 조정을 늦게 크게 하기보다 신속하게 조금씩 해야 한다고 강조했다. 금리인상 지속 가능성이 비트코인 등 위험자산에도 부담.</p>
+      <div class="meta">뉴시스·뉴스1(네이버) · 10-12</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">정책</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://news.google.com/rss/articles/CBMitwFBVV95cUxOWUNYSF8xeXZscDAyZTZVNC1zZHNtdHhqMng2bVZTenRCTDJWX0FDeV9pMjllMzRMRmJ0blkwMFZ1MENpd1RmbWltR1R0SmV6Q1JUQnpHbnZxNmQtYmZZaFpxdXVLS3Vxd2xqYmI1UVhLM3hCM2gybXN2LUZ5Q2JOdDByZUIwemdsenlGY3FxOENNME5lT0xocWNDYmN6X0ZxQXBiVFNHNnlENmVTOXdqU3pxdlpscHM?oc=5" target="_blank" rel="noopener">트럼프, 러시아 디젤 거래 두고 여야 비판 속 방어 — 러·우 에너지 휴전 난항</a><button type="button" class="copy" data-url="https://news.google.com/rss/articles/CBMitwFBVV95cUxOWUNYSF8xeXZscDAyZTZVNC1zZHNtdHhqMng2bVZTenRCTDJWX0FDeV9pMjllMzRMRmJ0blkwMFZ1MENpd1RmbWltR1R0SmV6Q1JUQnpHbnZxNmQtYmZZaFpxdXVLS3Vxd2xqYmI1UVhLM3hCM2gybXN2LUZ5Q2JOdDByZUIwemdsenlGY3FxOENNME5lT0xocWNDYmN6X0ZxQXBiVFNHNnlENmVTOXdqU3pxdlpscHM?oc=5">🔗 복사</button>
+      <p class="summary">미·러 디젤 거래가 평화협상 지렛대로 거론됐지만 초당적 비판에 직면했고, 러시아-우크라이나 에너지 시설 휴전 합의도 제대로 지켜지지 않고 있다. 유럽은 가스 재고 부족 속에 또 한 해 고유가를 각오하는 분위기.</p>
+      <div class="meta">Reuters(Finnhub) · 10-12</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">매크로</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://news.google.com/rss/articles/CBMizgFBVV95cUxQdUxxMHVta3BKU2dCLTBRTU5iRm1Xd1gwWWNBTzI4djlyVmFnYWpyZzRJbFQtamt5WHVoaFhCd1lMLVRWMUxpaGw5WERwT3dWZGJvbmRxYjhVUE5pU1Y4NjRzX2lVN1BpXzlBckQxMW4tYmhkNnpKOVQtdUQwSFJKUUZHUThxbnNRYllBZGtGSTV3MXFWZkc4cjRVUHJyU2c2MkNiRWczUl9NTUpVQ2tiSFVjR090Wk9yNjU3NkR4ZklId2o1akswcXNhZ3ptdw?oc=5" target="_blank" rel="noopener">인도 9월 물가 5.54%로 급등, RBI 추가 금리인상 명분 커져</a><button type="button" class="copy" data-url="https://news.google.com/rss/articles/CBMizgFBVV95cUxQdUxxMHVta3BKU2dCLTBRTU5iRm1Xd1gwWWNBTzI4djlyVmFnYWpyZzRJbFQtamt5WHVoaFhCd1lMLVRWMUxpaGw5WERwT3dWZGJvbmRxYjhVUE5pU1Y4NjRzX2lVN1BpXzlBckQxMW4tYmhkNnpKOVQtdUQwSFJKUUZHUThxbnNRYllBZGtGSTV3MXFWZkc4cjRVUHJyU2c2MkNiRWczUl9NTUpVQ2tiSFVjR090Wk9yNjU3NkR4ZklId2o1akswcXNhZ3ptdw?oc=5">🔗 복사</button>
+      <p class="summary">인도 소비자물가가 중앙은행 상한선에 근접하며 추가 긴축 가능성이 부상했다. 신흥국 금리 경로에 대한 경계가 다시 커지는 재료.</p>
+      <div class="meta">Reuters(Finnhub) · 10-12</div>
+    </div>
+
+    <div class="section-head" style="margin-top:16px">📅 주요 경제지표 <span style="font-weight:400">(한국시간)</span></div>
+    <table class="cal">
+      <tr><th>일시</th><th>국가</th><th>지표</th><th class="num">컨센서스</th><th class="num">이전</th></tr>
+      <tr><td>10/14 21:30</td><td>미국</td><td>CPI (전월비/전년비)</td><td class="num">+0.6% / +3.6%</td><td class="num">+0.4% / +3.4%</td></tr>
+      <tr><td>10/14 21:30</td><td>미국</td><td>Core CPI (전월비/전년비)</td><td class="num">+0.2% / +2.5%</td><td class="num">+0.3% / +2.4%</td></tr>
+      <tr><td>10/15 21:30</td><td>미국</td><td>PPI (전월비/전년비)</td><td class="num">+0.5% / +5.4%</td><td class="num">+0.4% / —</td></tr>
+      <tr><td>10/15 21:30</td><td>미국</td><td>Core PPI (전월비/전년비)</td><td class="num">+0.3% / —</td><td class="num">+0.2% / +4.6%</td></tr>
+      <tr><td>10/15 21:30</td><td>미국</td><td>소매판매 (전월비)</td><td class="num">+0.3%</td><td class="num">+1.2%</td></tr>
+      <tr><td>10/16 12:30</td><td>미국</td><td>Fed Warsh 연방의장 연설</td><td class="num">—</td><td class="num">—</td></tr>
+    </table>
+
+    <div class="section-head" style="margin-top:16px">🏛 주요 기업 실적 — 나온 결과</div>
+    <table class="cal">
+      <tr><th>일자</th><th>기업</th><th class="num">실제</th><th class="num">컨센</th><th class="num">서프라이즈</th></tr>
+      <tr><td>10-08</td><td><strong>PepsiCo (PEP)</strong></td><td class="num">$2.34</td><td class="num">$2.29</td><td class="num up">+2.2%</td></tr>
+      <tr><td class="why" colspan="5">컨센서스를 소폭 상회. 소비재 수요가 아직 꺾이지 않았다는 신호 정도로, 포트폴리오에 직접 영향은 제한적.</td></tr>
+    </table>
+
+    <div class="section-head" style="margin-top:16px">🗓 주요 기업 실적 — 예정</div>
+    <table class="cal">
+      <tr><th>일자</th><th>기업</th><th>시점</th><th class="num">EPS 컨센</th><th class="num">작년 동기</th></tr>
+      <tr><td>10-13</td><td><strong>JPMorgan (JPM)</strong></td><td>장전</td><td class="num">$5.94</td><td class="num">$5.07 <span class="up">(+17%)</span></td></tr>
+      <tr><td>10-13</td><td>Goldman Sachs (GS)</td><td>장전</td><td class="num">$12.90</td><td class="num">$12.25 <span class="up">(+5%)</span></td></tr>
+      <tr><td>10-14</td><td><strong>ASML</strong></td><td>장전</td><td class="num">$12.47</td><td class="num">$6.41 <span class="up">(+95%)</span></td></tr>
+      <tr><td>10-15</td><td><strong>TSMC (TSM)</strong></td><td>장전</td><td class="num">$4.45</td><td class="num">$2.92 <span class="up">(+52%)</span></td></tr>
+    </table>
+    <p style="font-size:12px;color:#6b7280;margin:-2px 2px 0">오늘 미국 4대 은행 실적 시즌 개막(JPM·GS 등), 15일 TSMC·14일 ASML(반도체 장비) 실적은 이번 메모리·반도체 셀오프 국면에서 업황 신호로 특히 주목.</p>
+  </div>
+
+  <!-- ── 종목별 ── -->
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">삼성전자</span><span class="code">005930 · KR</span></div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">반도체</span></div>
+      <a class="title" href="https://www.topstarnews.net/news/articleView.html?idxno=16245159" target="_blank" rel="noopener">역대급 잠정실적도 못 막은 주가 — 중국發 메모리 경쟁 공포에 급락</a><button type="button" class="copy" data-url="https://www.topstarnews.net/news/articleView.html?idxno=16245159">🔗 복사</button>
+      <p class="summary">10/8 공시한 3분기 잠정실적은 '역대급'으로 평가받지만, 중국 CXMT의 차세대 D램 진전 소식에 외국인이 2조원어치를 팔아치우며 코스피 6400선이 무너지는 와중에 삼성전자도 동반 하락했다. 호실적이 주가에 반영되기까지 통상 2개월가량 걸린다는 분석도 나온다.</p>
+      <div class="meta">네이버뉴스 · 10-12 22:00</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag filing">공시 · DART</span><span class="tag">잠정실적</span></div>
+      <a class="title" href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261008800004" target="_blank" rel="noopener">연결재무제표기준 영업(잠정)실적 공정공시</a><button type="button" class="copy" data-url="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261008800004">🔗 복사</button>
+      <p class="summary">3분기 잠정 실적 공시(10/8). 컨센서스 기준 매출 약 200.8조원·영업이익 약 106.9조원·EPS 13,504원 수준(목표주가 495,227원).</p>
+      <div class="meta">DART · 10-08</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag filing">공시 · DART</span><span class="tag">자기주식</span></div>
+      <a class="title" href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000421" target="_blank" rel="noopener">자기주식취득결과보고서</a><button type="button" class="copy" data-url="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261012000421">🔗 복사</button>
+      <p class="summary">진행 중인 자사주 매입의 취득 결과 보고. 주가 방어 조치가 이어지고 있음을 보여준다.</p>
+      <div class="meta">DART · 10-12</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">SK하이닉스</span><span class="code">000660 · KR</span></div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">반도체</span></div>
+      <a class="title" href="https://www.jasm.co.kr/news/view/321200/?sc=Naver" target="_blank" rel="noopener">SK하이닉스 美 ADR 4.02% 하락 — 中 메모리 굴기 공포 반영</a><button type="button" class="copy" data-url="https://www.jasm.co.kr/news/view/321200/?sc=Naver">🔗 복사</button>
+      <p class="summary">뉴욕증시에서 SK하이닉스 ADR이 4% 넘게 빠졌다. 엔비디아·브로드컴·AMD 등 다른 반도체주도 2% 안팎 하락한 가운데, 이번 주 본격화할 미 금융사 실적과 CPI가 다음 변곡점으로 지목된다.</p>
+      <div class="meta">네이버뉴스 · 10-12 22:04</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">중립</span></div>
+      <a class="title" href="https://www.thebell.co.kr/free/content/ArticleView.asp?key=202610081052036240108739" target="_blank" rel="noopener">SK하이닉스 손자회사 솔리다임, 나스닥 상장 추진 두고 '쪼개기 상장' 논란</a><button type="button" class="copy" data-url="https://www.thebell.co.kr/free/content/ArticleView.asp?key=202610081052036240108739">🔗 복사</button>
+      <p class="summary">낸드 자회사 솔리다임의 미 증시 상장이 거론되며 정치권·금융당국이 쪼개기·중복상장 가능성을 주시하고 있다. 회사 측은 "Arm식 가치회수"라는 입장.</p>
+      <div class="meta">네이버뉴스 · 10-12 22:00</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">실적 컨센서스</span></div>
+      <a class="title" href="https://news.bizwatch.co.kr/article/industry/2026/10/12/0038" target="_blank" rel="noopener">이익률 80% 넘보는 K-메모리, SK하이닉스도 호실적 바통 이어받나</a><button type="button" class="copy" data-url="https://news.bizwatch.co.kr/article/industry/2026/10/12/0038">🔗 복사</button>
+      <p class="summary">3분기(2026.09) 컨센서스는 EPS 79,222원·매출 약 98.4조원·영업이익 약 77.1조원(목표주가 3,253,182원). 삼성전자 잠정실적 이후 메모리 슈퍼사이클 기대가 한껏 높아진 상태.</p>
+      <div class="meta">bizwatch(네이버) · 10-12 22:00</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">네비우스 그룹</span><span class="code">NBIS · US</span></div>
+
+    <div class="card">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">AI 인프라</span></div>
+      <a class="title" href="https://finance.yahoo.com/markets/stocks/articles/nebius-group-nbis-economic-moat-153948772.html?.tsrc=rss" target="_blank" rel="noopener">애널리스트 Buy 커버리지에도 주가 약세 지속 — capex 부담 논쟁</a><button type="button" class="copy" data-url="https://finance.yahoo.com/markets/stocks/articles/nebius-group-nbis-economic-moat-153948772.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">Rosenblatt가 Buy로 커버리지를 시작했지만 주가는 되레 밀렸다. 최근 분기 매출은 전년 대비 454% 늘었지만 capex가 $111억까지 불어나며 "연매출의 8배를 장비에 쓰는 사업 모델"에 대한 의구심이 계속된다. 52주 최고 $300에서 $220대까지 밀린 상태.</p>
+      <div class="meta">Yahoo Finance · 10-12</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">업황</span><span class="tag neg">부정</span></div>
+      <a class="title" href="https://finance.yahoo.com/markets/stocks/articles/crwv-shares-slide-25-6-124100366.html?.tsrc=rss" target="_blank" rel="noopener">경쟁사 CoreWeave 6개월간 25% 하락 — 네오클라우드 전반 공급과잉 우려</a><button type="button" class="copy" data-url="https://finance.yahoo.com/markets/stocks/articles/crwv-shares-slide-25-6-124100366.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">CoreWeave도 $1,040억 규모 수주잔고에도 손실 확대·높은 자본지출·부채 우려로 약세. 엔비디아 지원 데이터센터 업체 Firmus Grid의 호주 IPO 연기 소식도 겹치며 AI 인프라 IPO 파이프라인 전반에 경고 신호가 켜졌다.</p>
+      <div class="meta">Yahoo Finance · 10-12, 10-08</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag pos">긍정</span><span class="tag">실적</span></div>
+      <span style="color:var(--ink); font-weight:600; font-size:15px;">직전 실적(8/12, Jun 2026) — EPS -$0.12 vs 컨센 -$0.67</span>
+      <p class="summary">적자폭을 컨센서스보다 크게 줄이며 상회. 다만 최근 주가 흐름은 이 실적보다 capex·공급과잉 우려에 더 좌우되는 모습.</p>
+      <div class="meta">실적 컨센서스 데이터</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">오라클</span><span class="code">ORCL · US</span></div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag pos">긍정</span><span class="tag">공시 · 감시포인트</span></div>
+      <a class="title" href="https://finance.yahoo.com/markets/stocks/articles/oracle-orcl-664b-lined-market-123605772.html?.tsrc=rss" target="_blank" rel="noopener">RPO $664B로 역대급 — 감시포인트 '잔여 수주잔고 감소' 는 아직 안 깨짐</a><button type="button" class="copy" data-url="https://finance.yahoo.com/markets/stocks/articles/oracle-orcl-664b-lined-market-123605772.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">FY2027 1분기 기준 잔여 수주잔고(RPO)가 $664B로 전분기 대비 오히려 더 쌓였다. ⚠️ 감시포인트 "RPO 전분기 대비 감소 여부" — 이번엔 감소가 아니라 역대 최대치로 확인됨(긍정). 다만 시장은 "계약이 아니라 현금"을 원한다는 평가다.</p>
+      <div class="meta">Yahoo Finance · 10-12</div>
+    </div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">감시포인트</span></div>
+      <a class="title" href="https://finance.yahoo.com/technology/ai/articles/oracle-orcl-faces-ai-balance-131348705.html?.tsrc=rss" target="_blank" rel="noopener">VC 폴 케드로스키 "오라클, AI 부채로 재무적 노출 크다" 경고</a><button type="button" class="copy" data-url="https://finance.yahoo.com/technology/ai/articles/oracle-orcl-faces-ai-balance-131348705.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">레거시 DB 사업은 쪼그라드는데 AI 클라우드 인프라 확장을 빚으로 조달하고 있다는 지적. 최근 신용등급 하향·회사채 금리 상승이 이를 뒷받침한다. ⚠️ 감시포인트 "$45~50B 자본조달·희석 규모" — 자금조달 압박이 실제로 커지는 중이라는 신호. 주가는 고점 대비 반토막 수준.</p>
+      <div class="meta">Yahoo Finance · 10-12</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">중립</span><span class="tag">매크로</span></div>
+      <a class="title" href="https://stocktwits.com/news-articles/markets/equity/michael-burry-shifts-bearish-bets-to-nasdaq-semiconductor-etf-puts-sees-market-top-within-9-months/cZxIPRTRBF8?.tsrc=rss" target="_blank" rel="noopener">마이클 버리, 나스닥·반도체 ETF 풋옵션으로 베어 베팅 확대</a><button type="button" class="copy" data-url="https://stocktwits.com/news-articles/markets/equity/michael-burry-shifts-bearish-bets-to-nasdaq-semiconductor-etf-puts-sees-market-top-within-9-months/cZxIPRTRBF8?.tsrc=rss">🔗 복사</button>
+      <p class="summary">9개월 내 시장 고점을 점치며 기술주·반도체 지수를 겨냥한 숏 포지션을 늘렸다는 보도. 오라클을 포함한 AI 인프라 밸류에이션 전반에 대한 경계 심리를 보여주는 재료.</p>
+      <div class="meta">Stocktwits(Yahoo) · 10-12</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">마이크로비전</span><span class="code">MVIS · US</span></div>
+
+    <div class="card">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">가이던스</span></div>
+      <a class="title" href="https://finance.yahoo.com/markets/stocks/articles/microvision-stock-tumbles-reiterated-2026-211233738.html?.tsrc=rss" target="_blank" rel="noopener">2026년 가이던스 '재확인'에 그치자 주가 장후 12% 급락</a><button type="button" class="copy" data-url="https://finance.yahoo.com/markets/stocks/articles/microvision-stock-tumbles-reiterated-2026-211233738.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">10/7 비즈니스 업데이트에서 기존 매출 가이던스를 상향 없이 그대로 재확인하자 시장은 실망 매도로 반응했다(장후 -12%). 리더십 교체(CFO 신규 선임)·국방 LiDAR 수주 확대 등은 진행 중이나 단기 주가엔 가이던스 쇼크가 더 크게 작용했다.</p>
+      <div class="meta">Yahoo Finance · 10-07</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">이노비즈 테크놀로지스</span><span class="code">INVZ · US</span></div>
+    <p style="color:#6b7280; font-size:13px; margin:0 0 8px;">최근 1~2주 특이사항 없음(이스라엘 국방부 LiDAR 적합성 인정 등은 이미 지난 소식).</p>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">아에바 테크놀로지스</span><span class="code">AEVA · US</span></div>
+    <p style="color:#6b7280; font-size:13px; margin:0 0 8px;">최근 1~2주 특이사항 없음.</p>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">셰니어 에너지</span><span class="code">LNG · US</span></div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag pos">긍정</span><span class="tag">감시포인트</span></div>
+      <a class="title" href="https://finance.yahoo.com/energy/articles/cheniere-energys-petrobras-lng-deal-122600581.html?.tsrc=rss" target="_blank" rel="noopener">Petrobras와 22년 장기 LNG 판매계약(SPA) 체결</a><button type="button" class="copy" data-url="https://finance.yahoo.com/energy/articles/cheniere-energys-petrobras-lng-deal-122600581.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">⚠️ 감시포인트 "장기 SPA 신규 체결" — 브라질 Petrobras와 22년짜리 장기 공급계약을 신규 체결하며 확인됨(긍정). 기존 브라운필드 증설 물량의 수요처 확보 측면에서 긍정적.</p>
+      <div class="meta">Cheniere PR(Yahoo) · 09-29</div>
+    </div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">감시포인트</span></div>
+      <a class="title" href="https://finance.yahoo.com/energy/articles/why-did-cheniere-energy-lng-051330626.html?.tsrc=rss" target="_blank" rel="noopener">직전 분기도 파생상품 손실로 순손실 전환 — 반복되는 패턴</a><button type="button" class="copy" data-url="https://finance.yahoo.com/energy/articles/why-did-cheniere-energy-lng-051330626.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">⚠️ 감시포인트 "파생상품 손실 반복 여부(1분기 $35억 손실이 일회성인지)" — 가장 최근 분기에서도 LNG 연계 파생상품 가치 변동으로 순손실을 냈다는 보도. 일회성이 아니라 지정학적 리스크·가스가격 변동성이 큰 분기마다 반복될 수 있음을 시사한다. 계속 주시 필요.</p>
+      <div class="meta">Yahoo Finance · 09-20</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">실적 예정</span></div>
+      <span style="color:var(--ink); font-weight:600; font-size:15px;">3분기(Sep/2026) 실적 발표 10/29 예정 — EPS 컨센 $3.92</span>
+      <p class="summary">사우디 공항 공격·호르무즈 관련 긴장이 유가·LNG 수급에 미칠 영향을 함께 지켜볼 실적.</p>
+      <div class="meta">실적 컨센서스 데이터</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">ST마이크로일렉트로닉스</span><span class="code">STM · US</span></div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag">업황</span><span class="tag">중립</span></div>
+      <a class="title" href="https://finance.yahoo.com/m/40e9a2ac-1f13-3446-a4ef-c02b4785e0b8/chip-stocks-mixed-after.html?.tsrc=rss" target="_blank" rel="noopener">한국 기술주 셀오프 이후 글로벌 칩주 '혼조' — 밸류체인 전염 확인</a><button type="button" class="copy" data-url="https://finance.yahoo.com/m/40e9a2ac-1f13-3446-a4ef-c02b4785e0b8/chip-stocks-mixed-after.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">코스피·코스닥 급락을 촉발한 중국 메모리 경쟁 우려가 미국·유럽 반도체주로도 번지는지 시장이 주시하고 있다. STM도 이 흐름 속에서 등락이 엇갈리는 중.</p>
+      <div class="meta">Yahoo Finance · 10-12</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag pos">긍정</span></div>
+      <a class="title" href="https://finance.yahoo.com/markets/stocks/articles/billionaire-stanley-druckenmiller-buying-stmicroelectronics-132726505.html?.tsrc=rss" target="_blank" rel="noopener">억만장자 스탠리 드러켄밀러, STM 신규 매수</a><button type="button" class="copy" data-url="https://finance.yahoo.com/markets/stocks/articles/billionaire-stanley-druckenmiller-buying-stmicroelectronics-132726505.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">드러켄밀러가 최근 "AI 주식 10선"에 STM을 포함시키며 신규 매수했다는 보도. 자동차·산업용 아날로그 칩 포트폴리오에 대한 베팅.</p>
+      <div class="meta">Yahoo Finance · 10-05</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">실적 예정</span></div>
+      <span style="color:var(--ink); font-weight:600; font-size:15px;">3분기(Sep/2026) 실적 발표 10/29 예정 — EPS 컨센 $0.40</span>
+      <p class="summary">⚠️ 감시포인트(데이터센터 매출 가이던스 달성 여부·영업마진·자동차 매출 회복) 확인은 이번 실적에서. 현재까지 자사주매입은 계획대로 진행 중(10/5~10/9 매입분 공시).</p>
+      <div class="meta">실적 컨센서스 데이터 · 자사주매입 공시 10-12</div>
+    </div>
+  </div>
+
+  <div class="ticker-group">
+    <div class="ticker-head"><span class="name">로블록스</span><span class="code">RBLX · US</span></div>
+
+    <div class="card relevant">
+      <div class="tags"><span class="tag neg">부정</span><span class="tag">경쟁</span></div>
+      <a class="title" href="https://finance.yahoo.com/technology/ai/articles/roblox-shares-fall-google-unity-124448958.html?.tsrc=rss" target="_blank" rel="noopener">구글·유니티, AI 게임제작 플랫폼 공동 출시 — 로블록스 한때 -8%</a><button type="button" class="copy" data-url="https://finance.yahoo.com/technology/ai/articles/roblox-shares-fall-google-unity-124448958.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">코딩 없이 텍스트 프롬프트로 게임을 만드는 구글·유니티의 신규 플랫폼이 발표되며 로블록스 주가가 장중 최대 8% 빠졌다(이후 -5% 안팎 마감). 크리에이터 이탈 우려가 핵심 리스크로 부상.</p>
+      <div class="meta">Investing.com(Yahoo) · 10-07</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag pos">긍정</span><span class="tag">실적 예정</span></div>
+      <a class="title" href="https://finance.yahoo.com/markets/stocks/articles/roblox-rblx-5-9-viral-130943193.html?.tsrc=rss" target="_blank" rel="noopener">바이럴 히트 'Steal an Egg'로 3분기 참여지표 개선 — Wedbush 추정 상향</a><button type="button" class="copy" data-url="https://finance.yahoo.com/markets/stocks/articles/roblox-rblx-5-9-viral-130943193.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">Wedbush는 3분기 Bookings 추정치를 $16.4억→$17억, EBITDA를 상향 조정했다. 다만 BofA는 "하나의 바이럴 히트가 장기 성장 질문을 해결해주진 않는다"고 지적. 3분기 실적은 10/29 장마감 후 발표(매출 컨센 $16.4억, EPS 컨센 -$0.43).</p>
+      <div class="meta">Yahoo Finance · 10-09, 10-10</div>
+    </div>
+
+    <div class="card">
+      <div class="tags"><span class="tag">중립</span><span class="tag">법률 리스크</span></div>
+      <a class="title" href="https://finance.yahoo.com/media-advertising/articles/san-diego-launches-consumer-protection-000500092.html?.tsrc=rss" target="_blank" rel="noopener">샌디에이고 카운티, 아동 안전 관련 소비자보호 소송 제기</a><button type="button" class="copy" data-url="https://finance.yahoo.com/media-advertising/articles/san-diego-launches-consumer-protection-000500092.html?.tsrc=rss">🔗 복사</button>
+      <p class="summary">샌디에이고가 신설한 소비자보호 전담팀이 첫 조치로 AppLovin·로블록스 등을 상대로 소송을 제기했다. 과거부터 이어진 아동 안전 규제 리스크의 연장선.</p>
+      <div class="meta">PR Newswire(Yahoo) · 10-06</div>
+    </div>
+  </div>
+
+  <footer>
+    stock-morning-bot · 출처 링크는 각 기사·공시의 원문으로 연결됩니다.
+  </footer>
+</div>
+<script data-copylinks>
+(function () {
+  function fallback(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+  function copy(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; },
+        function () { return fallback(text); });
+    }
+    return Promise.resolve(fallback(text));
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('button.copy[data-url]');
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    var url = b.getAttribute('data-url');
+    copy(url).then(function (ok) {
+      if (!ok) { window.prompt('링크를 복사하세요', url); return; }
+      b.textContent = '✓ 복사됨'; b.classList.add('done');
+      setTimeout(function () { b.textContent = '🔗 복사'; b.classList.remove('done'); }, 1500);
+    });
+  });
+})();
+</script>
+</body>
+</html>
