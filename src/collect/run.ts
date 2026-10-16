@@ -24,6 +24,7 @@ import naverEarnings from './naver-earnings';
 import fmp from './fmp';
 import nasdaq from './nasdaq';
 import rss from './rss';
+import googleNews from './google-news';
 import marketNews from './market-news';
 import marketIndex from './market-index';
 import econCalendar from './econ-calendar';
@@ -67,6 +68,8 @@ async function main() {
     fmp,
     nasdaq,
     rss,
+    // rss 뒤에 둬야 같은 기사가 겹칠 때 원문 URL(Yahoo)이 남는다
+    googleNews,
     // 종목과 무관한 시장 전체 재료 (브리핑 맨 앞 "오늘의 시장" 섹션)
     marketNews,
     marketIndex,
@@ -103,6 +106,8 @@ async function main() {
   });
 
   merged.news = dedupe(merged.news, (n) => n.url);
+  // Yahoo 와 Google News 가 같은 기사를 다른 URL 로 준다 — 제목으로 한 번 더 거른다.
+  merged.news = dedupe(merged.news, (n) => `${n.ticker}|${n.title.toLowerCase().replace(/[^a-z0-9가-힣]/g, '')}`);
   merged.filings = dedupe(merged.filings, (f) => f.url);
   // 같은 실적을 두 소스(FMP·Nasdaq)가 함께 주는 경우가 있다.
   merged.earnings = dedupe(merged.earnings, (e) => `${e.ticker}|${e.eventDate ?? e.period ?? ''}`);

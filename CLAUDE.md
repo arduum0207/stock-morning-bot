@@ -38,12 +38,13 @@ src/
     fmp.ts            US 실적 (FMP — 무료 티어는 일부 종목만)
     nasdaq.ts         US 실적 일정 + 발표된 결과 (Nasdaq, 키 불필요 — FMP 공백 보완)
     rss.ts            US 뉴스 (Yahoo RSS)
+    google-news.ts    US 뉴스 보강 (Google News RSS — 애널리스트 목표가·소형주, 키 불필요)
     market-news.ts    시장 전체 뉴스 (네이버 매크로 키워드 + Yahoo 시장 RSS)
     market-index.ts   지수·환율·금리·유가·금 (네이버 + FMP, 실시간)
     econ-calendar.ts  경제지표 캘린더 (Nasdaq, 키 불필요 · 중요도 등급은 우리가 매김)
     fred.ts           달러인덱스·미국채2년·장단기 금리차 (FRED, 지연 있음)
     finnhub-news.ts   글로벌 금융 뉴스 (Finnhub — Reuters·CNBC)
-    cik.ts            US ticker→CIK 자동 해석
+    cik.ts            US ticker→CIK·영문명 자동 해석
     run.ts            오케스트레이터 → out/collected.json
   telegram.ts         sendDocument / sendMessage
   send.ts             CLI 발송

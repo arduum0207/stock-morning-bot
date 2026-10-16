@@ -148,6 +148,8 @@ export interface RssItem {
   link: string;
   pubDate: string | null;
   description: string | null;
+  /** <source> 태그 (Google News 는 여기에 언론사명을 준다). 없으면 null. */
+  source: string | null;
 }
 
 /** 의존성 없이 정규식으로 RSS <item> 을 뽑는다. title·link 없는 항목은 버린다. */
@@ -161,7 +163,13 @@ export function parseRssItems(xml: string): RssItem[] {
     const title = field(block, 'title');
     const link = field(block, 'link');
     if (!title || !link) continue;
-    out.push({ title, link, pubDate: field(block, 'pubDate'), description: field(block, 'description') });
+    out.push({
+      title,
+      link,
+      pubDate: field(block, 'pubDate'),
+      description: field(block, 'description'),
+      source: block.match(/<source[^>]*>([\s\S]*?)<\/source>/i)?.[1]?.trim() ?? null,
+    });
   }
   return out;
 }

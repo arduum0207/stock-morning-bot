@@ -12,6 +12,7 @@
 | `naver-earnings` | m.stock.naver.com | 불필요 | KR 실적 컨센서스 |
 | `sec` | SEC EDGAR | 불필요(UA 필요) | US 공시 |
 | `rss` | Yahoo Finance RSS | 불필요 | US 종목 뉴스 |
+| `google-news` | Google News RSS 검색 | 불필요 | US 종목 뉴스 보강 — 애널리스트 목표가·소형주 |
 | `fmp` | FMP stable/earnings | `FMP_API_KEY` | 무료 티어는 대부분 402 → `nasdaq` 이 실질 담당 |
 | `nasdaq` | api.nasdaq.com | 불필요(브라우저 UA) | US 실적 일정 + **발표된 결과** + 대형주 실적 |
 | `market-news` | 네이버 키워드 검색 + Yahoo 시장 RSS | 네이버 키 | 매크로·정책·산업 뉴스 |
@@ -98,6 +99,23 @@ BLSM   컨센 -$0.84 → 실제 -$8.75   → -941%  (실제 의미는 "적자폭
 category 전체 목록은 잘못된 값을 넣으면 에러 메시지가 알려준다
 (`major|exchange|exchangeWorld|bond|standardInterest|domesticInterest|energy|metals|agricultural|environmental|transport`).
 코드를 모를 땐 해당 네이버 페이지 HTML 에서 `"reutersCode"` 를 grep 하면 나온다.
+
+## 함정 — Yahoo 종목 RSS 는 소형주에서 몇 주씩 멈춘다
+
+실측 2026-10-16, AEVA: Yahoo RSS 15건 중 최신이 10/14 일정 공지 1건, 나머지는 9월 이전이고
+절반은 Ouster(경쟁사) 기사였다. 같은 기간 실제로 있던 **Goldman 목표가 $20→$15 하향(10/6)** 은 없었다.
+애널리스트 의견 변경은 TheFly·MarketBeat·Moomoo 등에만 실려서 Yahoo RSS 로는 원래 안 들어온다.
+
+- Finnhub `company-news` 무료: 같은 Yahoo 기사 4건만 돌려줌 → 대안 아님
+- FMP `news/stock` · `grades`: 무료 티어 402
+- **Google News RSS 검색**: 키 없이 위 기사들이 다 잡힘 → `google-news.ts` 로 보강
+
+`google-news.ts` 메모:
+- 검색어는 영문 회사명(`enName`, SEC 등록명에서 자동) + `NASDAQ:/NYSE:티커`. 티커 단독은 동음이의어가
+  섞인다(AEVA = 호주 전기차협회).
+- MarketBeat 13F 보유변동 기사("X LLC Buys N Shares of ...")가 대형주는 하루 수십 건이라 제목으로 거른다.
+- 링크는 `news.google.com` 리다이렉트 URL 이라 Yahoo 와 URL 이 달라서, `run.ts` 가 제목으로 한 번 더 중복 제거한다.
+- 회사명이 흔한 단어면(Oracle → Oracle Park 등) 잡음이 섞인다. 거슬리면 watchlist 에 `enName` 을 직접 적는다.
 
 ## FMP 무료 티어에서 열리는 심볼
 

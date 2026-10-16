@@ -11,6 +11,11 @@ export interface WatchTicker {
   dartCorpCode?: string;
   /** US 공시(SEC)용. 비워두면 ticker로 자동 해석(resolveCik)된다. */
   secCik?: string;
+  /**
+   * 영문 회사명 (US 뉴스 검색어용). 비워두면 SEC 등록명으로 자동 채워진다(resolveCik).
+   * 자동 이름이 이상하게 검색될 때만 손으로 적는다. 예: "Aeva Technologies"
+   */
+  enName?: string;
 }
 
 export interface Watchlist {
