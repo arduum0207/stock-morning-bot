@@ -12,11 +12,6 @@
       "market": "KR"
     },
     {
-      "ticker": "NBIS",
-      "name": "네비우스 그룹",
-      "market": "US"
-    },
-    {
       "ticker": "ORCL",
       "name": "오라클",
       "market": "US",
@@ -68,6 +63,11 @@
       "ticker": "RBLX",
       "name": "로블록스",
       "market": "US"
+    },
+    {
+      "ticker": "012450",
+      "name": "한화에어로스페이스",
+      "market": "KR"
     }
   ]
 }
