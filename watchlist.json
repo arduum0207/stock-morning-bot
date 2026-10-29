@@ -68,6 +68,11 @@
       "ticker": "012450",
       "name": "한화에어로스페이스",
       "market": "KR"
+    },
+    {
+      "ticker": "329180",
+      "name": "HD현대중공업",
+      "market": "KR"
     }
   ]
 }
